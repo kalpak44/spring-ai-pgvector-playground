@@ -1,17 +1,17 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const sendButton = document.getElementById("send-button");
-    const chatInput = document.getElementById("chat-input");
+
+    // ── Chat ─────────────────────────────────────────────
+    const sendButton        = document.getElementById("send-button");
+    const chatInput         = document.getElementById("chat-input");
     const messagesContainer = document.getElementById("messages");
 
     if (!sendButton || !chatInput || !messagesContainer) return;
 
-    // Auto-resize textarea as the user types
     chatInput.addEventListener("input", function () {
         this.style.height = "auto";
         this.style.height = Math.min(this.scrollHeight, 144) + "px";
     });
 
-    // Submit on Enter; Shift+Enter inserts a newline
     chatInput.addEventListener("keydown", function (e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", function () {
         chatInput.value = "";
         chatInput.style.height = "auto";
 
-        // Append user message bubble
         const userDiv = document.createElement("div");
         userDiv.className = "flex items-end justify-end gap-2";
         userDiv.innerHTML = `
@@ -41,7 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const chatId = window.location.pathname.split("/").pop();
         const url = `/chat-stream/${chatId}?userPrompt=${encodeURIComponent(prompt)}`;
 
-        // Create AI message bubble (empty while streaming)
         const aiDiv = document.createElement("div");
         aiDiv.className = "flex items-end gap-2";
         const aiBubble = document.createElement("div");

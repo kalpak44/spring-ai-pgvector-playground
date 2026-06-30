@@ -1,17 +1,22 @@
 spring:
   application:
-    name: Moy_LLM_Eto_ne_tvoy_LLM
+    name: Moy_LLM
+  messages:
+    basename: messages
+    encoding: UTF-8
   main:
     allow-circular-references: true
   ai:
     ollama:
-      base-url: http://localhost:11431
       chat:
-        model: gemma3:4b-it-q4_K_M
+        enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/ragdb
     username: postgres
     password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
   # ai:
   #   vectorstore:
   #     pgvector:

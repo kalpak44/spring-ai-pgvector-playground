@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{settings.title}">AI Assistant — Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center px-6 gap-4 shrink-0" style="background:#0c0c0f;">
+    <a href="/settings" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+        </svg>
+        <span class="text-sm" th:text="#{settings.back}">Back to Settings</span>
+    </a>
+    <span class="text-zinc-700">|</span>
+    <span class="text-zinc-300 text-sm font-medium" th:text="#{settings.nav.connectors}">Connectors</span>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-2xl flex flex-col gap-4">
+
+        <!-- Contacts connector -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <div class="flex items-start gap-4">
+
+                <!-- Icon -->
+                <div class="shrink-0 w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+
+                <!-- Info + toggle -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-3 mb-1">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-zinc-100 font-medium text-sm" th:text="#{settings.connectors.contacts.name}">Contacts</span>
+                            <span id="contacts-badge"
+                                  th:data-connected-text="#{settings.connectors.status.connected}"
+                                  th:data-disconnected-text="#{settings.connectors.status.not_connected}"
+                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30">
+                                <span id="contacts-badge-dot" class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                                <span id="contacts-badge-label" th:text="#{settings.connectors.status.not_connected}">Not connected</span>
+                            </span>
+                        </div>
+
+                        <!-- Toggle switch -->
+                        <button type="button" role="switch" aria-checked="false" id="contacts-toggle"
+                                onclick="toggleContacts()"
+                                class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full bg-zinc-700 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                            <span id="contacts-knob"
+                                  class="translate-x-0.5 inline-block h-4 w-4 transform rounded-full bg-zinc-400 shadow transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+
+                    <p class="text-zinc-500 text-xs mb-3" th:text="#{settings.connectors.contacts.desc}">Enable the assistant to read and reference your contacts during conversations.</p>
+
+                    <div class="flex flex-wrap gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700/50 text-zinc-400 text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span th:text="#{settings.connectors.scope.contacts}">Contacts (read)</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boards connector -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <div class="flex items-start gap-4">
+
+                <!-- Icon -->
+                <div class="shrink-0 w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                    </svg>
+                </div>
+
+                <!-- Info + toggle -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-3 mb-1">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-zinc-100 font-medium text-sm" th:text="#{settings.connectors.boards.name}">Boards</span>
+                            <span id="boards-badge"
+                                  th:data-connected-text="#{settings.connectors.status.connected}"
+                                  th:data-disconnected-text="#{settings.connectors.status.not_connected}"
+                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30">
+                                <span id="boards-badge-dot" class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                                <span id="boards-badge-label" th:text="#{settings.connectors.status.not_connected}">Not connected</span>
+                            </span>
+                        </div>
+
+                        <!-- Toggle switch -->
+                        <button type="button" role="switch" aria-checked="false" id="boards-toggle"
+                                onclick="toggleBoards()"
+                                class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full bg-zinc-700 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+                            <span id="boards-knob"
+                                  class="translate-x-0.5 inline-block h-4 w-4 transform rounded-full bg-zinc-400 shadow transition duration-200 ease-in-out"></span>
+                        </button>
+                    </div>
+
+                    <p class="text-zinc-500 text-xs mb-3" th:text="#{settings.connectors.boards.desc}">Enable the assistant to create, update, and move tickets on your boards.</p>
+
+                    <div class="flex flex-wrap gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700/50 text-zinc-400 text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                            </svg>
+                            <span th:text="#{settings.connectors.scope.boards}">Boards (read &amp; write)</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google connector -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <div class="flex items-start gap-4">
+
+                <!-- Google logo -->
+                <div class="shrink-0 w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                    <svg viewBox="0 0 24 24" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                </div>
+
+                <!-- Info + status -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2.5 mb-1">
+                        <span class="text-zinc-100 font-medium text-sm" th:text="#{settings.connectors.google.name}">Google</span>
+                        <!-- Connected badge -->
+                        <span th:if="${googleConnected}"
+                              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span th:text="#{settings.connectors.status.connected}">Connected</span>
+                        </span>
+                        <!-- Not connected badge -->
+                        <span th:unless="${googleConnected}"
+                              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30">
+                            <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                            <span th:text="#{settings.connectors.status.not_connected}">Not connected</span>
+                        </span>
+                    </div>
+                    <p class="text-zinc-500 text-xs mb-3" th:text="#{settings.connectors.google.desc}">Gmail and Google Calendar</p>
+
+                    <!-- Scopes -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700/50 text-zinc-400 text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                            </svg>
+                            <span th:text="#{settings.connectors.scope.gmail}">Gmail</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700/50 text-zinc-400 text-xs">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/>
+                            </svg>
+                            <span th:text="#{settings.connectors.scope.calendar}">Google Calendar</span>
+                        </span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                        <a th:unless="${googleConnected}"
+                           href="/settings/connectors/google/connect"
+                           class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+                            </svg>
+                            <span th:text="#{settings.connectors.action.connect}">Connect</span>
+                        </a>
+                        <form th:if="${googleConnected}" th:action="@{/settings/connectors/google/disconnect}" method="post">
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-red-500/10 border border-zinc-700/60 hover:border-red-500/40 text-zinc-400 hover:text-red-400 text-xs font-medium px-3.5 py-2 rounded-lg transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.181 8.68a4.503 4.503 0 011.903 6.405m-9.768-3.43a4.5 4.5 0 006.364 6.364l1.757-1.757m-4.596-4.596l4.5-4.5a4.5 4.5 0 00-6.364-6.364l-1.757 1.757"/>
+                                </svg>
+                                <span th:text="#{settings.connectors.action.disconnect}">Disconnect</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function toggleBoards() {
+        const toggle = document.getElementById('boards-toggle');
+        const knob   = document.getElementById('boards-knob');
+        const badge  = document.getElementById('boards-badge');
+        const dot    = document.getElementById('boards-badge-dot');
+        const label  = document.getElementById('boards-badge-label');
+
+        const next = toggle.getAttribute('aria-checked') !== 'true';
+        toggle.setAttribute('aria-checked', String(next));
+
+        if (next) {
+            toggle.classList.replace('bg-zinc-700', 'bg-violet-600');
+            knob.classList.replace('translate-x-0.5', 'translate-x-[1.125rem]');
+            knob.classList.replace('bg-zinc-400', 'bg-white');
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+            label.textContent = badge.dataset.connectedText;
+        } else {
+            toggle.classList.replace('bg-violet-600', 'bg-zinc-700');
+            knob.classList.replace('translate-x-[1.125rem]', 'translate-x-0.5');
+            knob.classList.replace('bg-white', 'bg-zinc-400');
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30';
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-zinc-500';
+            label.textContent = badge.dataset.disconnectedText;
+        }
+    }
+
+    function toggleContacts() {
+        const toggle = document.getElementById('contacts-toggle');
+        const knob   = document.getElementById('contacts-knob');
+        const badge  = document.getElementById('contacts-badge');
+        const dot    = document.getElementById('contacts-badge-dot');
+        const label  = document.getElementById('contacts-badge-label');
+
+        const on = toggle.getAttribute('aria-checked') === 'true';
+        const next = !on;
+        toggle.setAttribute('aria-checked', String(next));
+
+        if (next) {
+            toggle.classList.replace('bg-zinc-700', 'bg-violet-600');
+            knob.classList.replace('translate-x-0.5', 'translate-x-[1.125rem]');
+            knob.classList.replace('bg-zinc-400', 'bg-white');
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+            label.textContent = badge.dataset.connectedText;
+        } else {
+            toggle.classList.replace('bg-violet-600', 'bg-zinc-700');
+            knob.classList.replace('translate-x-[1.125rem]', 'translate-x-0.5');
+            knob.classList.replace('bg-white', 'bg-zinc-400');
+            badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30';
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-zinc-500';
+            label.textContent = badge.dataset.disconnectedText;
+        }
+    }
+</script>
+</body>
+</html>

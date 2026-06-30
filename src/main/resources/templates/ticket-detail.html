@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${ticket.title} + ' — AI Assistant'">Ticket — AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4">
+        <a href="/apps/boards" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm" th:text="#{boards.nav.back}">Back to Boards</span>
+        </a>
+        <span class="text-zinc-700">|</span>
+        <span class="text-zinc-300 text-sm font-medium truncate max-w-xs" th:text="${ticket.title}">Ticket</span>
+    </div>
+    <a href="/settings" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded" th:title="#{chat.settings_title}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+    </a>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-2xl flex flex-col gap-5">
+
+        <!-- Save success flash -->
+        <div th:if="${saveSuccess}"
+             class="px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-sm"
+             th:text="#{boards.ticket.save.success}">Ticket saved.</div>
+
+        <!-- Ticket form card -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
+
+            <!-- Meta info -->
+            <div class="flex items-center gap-4 mb-5 text-xs text-zinc-500">
+                <div class="flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25"/>
+                    </svg>
+                    <span th:text="${ticket.boardColumn.name}">Column</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span th:text="${#temporals.format(ticket.createdAt, 'MMM d, yyyy HH:mm')}"></span>
+                </div>
+                <div th:if="${ticket.priority != null}">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                          th:classappend="${ticket.priority.name() == 'LOW'      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' :
+                                           ticket.priority.name() == 'MEDIUM'   ? 'bg-blue-500/15 text-blue-400 border-blue-500/25' :
+                                           ticket.priority.name() == 'HIGH'     ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' :
+                                                                                  'bg-red-500/15 text-red-400 border-red-500/25'}"
+                          th:text="#{|boards.priority.${ticket.priority.name().toLowerCase()}|}">Low</span>
+                </div>
+            </div>
+
+            <form id="ticket-form"
+                  th:action="@{/apps/boards/tickets/{id}(id=${ticket.id})}"
+                  method="post"
+                  class="flex flex-col gap-4">
+
+                <!-- Title -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-medium text-zinc-400" th:text="#{boards.ticket.field.title}">Title</label>
+                    <input type="text" name="title" required th:value="${ticket.title}"
+                           class="bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+
+                <!-- Description -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-medium text-zinc-400" th:text="#{boards.ticket.field.description}">Description</label>
+                    <textarea name="description" rows="4"
+                              th:text="${ticket.description}"
+                              class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 resize-y focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"></textarea>
+                </div>
+
+                <!-- Assignee + Priority -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-medium text-zinc-400" th:text="#{boards.ticket.field.assignee}">Assignee</label>
+                        <select name="assigneeUsername"
+                                class="bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 transition-all">
+                            <option value="" th:text="#{boards.ticket.unassigned}">Unassigned</option>
+                            <option th:each="u : ${allUsers}"
+                                    th:value="${u.username}"
+                                    th:text="${u.firstName != null ? u.firstName + ' ' + (u.lastName ?: '') : u.username}"
+                                    th:selected="${u.username == ticket.assigneeUsername}"></option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs font-medium text-zinc-400" th:text="#{boards.ticket.field.priority}">Priority</label>
+                        <select name="priority"
+                                class="bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 transition-all">
+                            <option value="" th:text="#{boards.priority.none}" th:selected="${ticket.priority == null}">None</option>
+                            <option th:each="p : ${priorities}"
+                                    th:value="${p.name()}"
+                                    th:text="#{|boards.priority.${p.name().toLowerCase()}|}"
+                                    th:selected="${p == ticket.priority}"></option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Actions: save + delete (separate forms, no nesting) -->
+            <div class="flex items-center justify-between pt-5">
+                <button type="submit" form="ticket-form"
+                        class="bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+                        th:text="#{boards.ticket.button.save}">Save</button>
+
+                <form th:action="@{/apps/boards/tickets/{id}/delete(id=${ticket.id})}"
+                      method="post"
+                      th:attr="onsubmit=|return confirm('#{boards.ticket.delete.confirm}')|">
+                    <button type="submit"
+                            class="flex items-center gap-1.5 text-zinc-600 hover:text-red-400 text-sm transition-colors px-3 py-2 rounded-lg hover:bg-red-500/5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                        <span th:text="#{boards.ticket.button.delete}">Delete</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Comments -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl overflow-hidden">
+
+            <div class="px-5 py-4 border-b border-zinc-800/60">
+                <p class="text-sm font-medium text-zinc-300" th:text="#{boards.comments.heading}">Comments</p>
+            </div>
+
+            <!-- Add comment form -->
+            <div class="px-5 py-4 border-b border-zinc-800/40">
+                <form th:action="@{/apps/boards/tickets/{id}/comments(id=${ticket.id})}" method="post" class="flex flex-col gap-2">
+                    <textarea name="body" rows="2" required
+                              th:placeholder="#{boards.comments.placeholder}"
+                              class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"></textarea>
+                    <button type="submit"
+                            class="self-end bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg transition-colors"
+                            th:text="#{boards.comments.button}">Add Comment</button>
+                </form>
+            </div>
+
+            <!-- Comment list -->
+            <div th:each="comment : ${ticket.comments}"
+                 class="px-5 py-4 border-b border-zinc-800/40 last:border-0">
+
+                <!-- Display mode -->
+                <div th:id="'comment-display-' + ${comment.id}">
+                    <div class="flex items-start justify-between gap-3 mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="w-5 h-5 rounded-full bg-zinc-700 border border-zinc-600/50 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs font-medium text-zinc-400"
+                                  th:text="${comment.authorDisplayName ?: comment.authorUsername}"></span>
+                            <span class="text-xs text-zinc-600"
+                                  th:text="${#temporals.format(comment.createdAt, 'MMM d, yyyy')}"></span>
+                            <span th:if="${comment.updatedAt != comment.createdAt}"
+                                  class="text-xs text-zinc-700 italic">edited</span>
+                        </div>
+
+                        <!-- Own comment actions -->
+                        <div th:if="${comment.authorUsername == currentUsername}" class="flex items-center gap-0.5 shrink-0">
+                            <button type="button"
+                                    th:onclick="'editComment(' + ${comment.id} + ')'"
+                                    class="text-zinc-600 hover:text-zinc-300 transition-colors px-2 py-1 rounded text-xs"
+                                    th:text="#{boards.comments.edit}">Edit</button>
+                            <form th:action="@{/apps/boards/tickets/{tid}/comments/{cid}/delete(tid=${ticket.id},cid=${comment.id})}"
+                                  method="post"
+                                  th:attr="onsubmit=|return confirm('#{boards.comments.delete.confirm}')|">
+                                <button type="submit"
+                                        class="text-zinc-600 hover:text-red-400 transition-colors p-1 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <p class="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed" th:text="${comment.body}"></p>
+                </div>
+
+                <!-- Edit mode (own comments only, hidden by default) -->
+                <div th:if="${comment.authorUsername == currentUsername}"
+                     th:id="'comment-edit-' + ${comment.id}"
+                     class="hidden">
+                    <form th:action="@{/apps/boards/tickets/{tid}/comments/{cid}/edit(tid=${ticket.id},cid=${comment.id})}"
+                          method="post"
+                          class="flex flex-col gap-2">
+                        <textarea name="body" rows="3" required
+                                  th:id="'comment-body-' + ${comment.id}"
+                                  th:text="${comment.body}"
+                                  class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 resize-none focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"></textarea>
+                        <div class="flex items-center gap-2 justify-end">
+                            <button type="button"
+                                    th:onclick="'cancelEdit(' + ${comment.id} + ')'"
+                                    class="text-zinc-400 hover:text-zinc-200 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                                    th:text="#{boards.comments.cancel}">Cancel</button>
+                            <button type="submit"
+                                    class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg transition-colors"
+                                    th:text="#{boards.comments.save}">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Empty -->
+            <div th:if="${#lists.isEmpty(ticket.comments)}"
+                 class="px-5 py-8 text-center text-zinc-600 text-sm"
+                 th:text="#{boards.comments.empty}">No comments yet.</div>
+
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function editComment(id) {
+        document.getElementById('comment-display-' + id).classList.add('hidden');
+        document.getElementById('comment-edit-'    + id).classList.remove('hidden');
+        document.getElementById('comment-body-'    + id).focus();
+    }
+    function cancelEdit(id) {
+        document.getElementById('comment-display-' + id).classList.remove('hidden');
+        document.getElementById('comment-edit-'    + id).classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>

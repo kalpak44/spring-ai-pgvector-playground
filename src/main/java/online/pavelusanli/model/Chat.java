@@ -24,6 +24,8 @@ public class Chat {
 
     private String title;
 
+    private Long userId;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

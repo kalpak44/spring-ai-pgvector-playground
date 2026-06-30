@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{setup.title}">AI Assistant — Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex items-center justify-center py-10" style="font-family:'Outfit',sans-serif;">
+
+<div class="w-full max-w-lg mx-4">
+
+    <!-- Logo -->
+    <div class="flex items-center justify-center gap-2.5 mb-8">
+        <div class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-900/50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+            </svg>
+        </div>
+        <span class="text-zinc-100 font-semibold text-lg tracking-tight" style="font-family:'JetBrains Mono',monospace;">AI Assistant</span>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6 shadow-2xl shadow-black/40">
+
+        <div class="mb-5">
+            <h1 class="text-zinc-100 font-semibold text-base" th:text="#{setup.heading}">Initial Setup</h1>
+            <p class="text-zinc-500 text-xs mt-1" th:text="#{setup.description}">This page is only shown once.</p>
+        </div>
+
+        <div th:if="${error}" class="mb-4 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" th:text="${error}"></div>
+
+        <form th:action="@{/setup}" method="post" class="flex flex-col gap-5">
+
+            <!-- Admin account -->
+            <div>
+                <p class="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-3" style="font-family:'JetBrains Mono',monospace;" th:text="#{setup.section.admin}">Admin Account</p>
+                <div class="flex flex-col gap-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label for="firstName" class="text-xs text-zinc-400" th:text="#{setup.field.first_name}">First Name</label>
+                            <input id="firstName" name="firstName" type="text" required placeholder="Jane"
+                                   class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label for="lastName" class="text-xs text-zinc-400" th:text="#{setup.field.last_name}">Last Name</label>
+                            <input id="lastName" name="lastName" type="text" required placeholder="Smith"
+                                   class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="username" class="text-xs text-zinc-400" th:text="#{setup.field.username}">Username</label>
+                        <input id="username" name="username" type="text" required placeholder="admin"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label for="password" class="text-xs text-zinc-400" th:text="#{setup.field.password}">Password</label>
+                            <input id="password" name="password" type="password" required placeholder="••••••"
+                                   class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label for="passwordConfirm" class="text-xs text-zinc-400" th:text="#{setup.field.confirm}">Confirm</label>
+                            <input id="passwordConfirm" name="passwordConfirm" type="password" required placeholder="••••••"
+                                   class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ollama -->
+            <div>
+                <p class="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-3" style="font-family:'JetBrains Mono',monospace;" th:text="#{setup.section.ollama}">Ollama</p>
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="ollamaBaseUrl" class="text-xs text-zinc-400" th:text="#{setup.field.base_url}">Base URL</label>
+                        <input id="ollamaBaseUrl" name="ollamaBaseUrl" type="text" required placeholder="http://localhost:11434"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label for="ollamaModel" class="text-xs text-zinc-400" th:text="#{setup.field.model}">Model</label>
+                        <input id="ollamaModel" name="ollamaModel" type="text" required placeholder="gemma3:4b-it-q4_K_M"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div>
+                <p class="text-xs font-medium text-zinc-500 uppercase tracking-widest mb-3" style="font-family:'JetBrains Mono',monospace;" th:text="#{setup.section.preferences}">Preferences</p>
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="timezone" class="text-xs text-zinc-400" th:text="#{setup.field.timezone}">Timezone</label>
+                        <input id="timezone" name="timezone" type="text" required placeholder="Europe/Sofia"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-zinc-400" th:text="#{setup.field.language}">Language</label>
+                        <div class="flex gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="language" value="en" th:checked="${selectedLang == 'en'}" class="accent-violet-500"/>
+                                <span class="text-sm text-zinc-300" th:text="#{setup.language.en}">English</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="language" value="bg" th:checked="${selectedLang == 'bg'}" class="accent-violet-500"/>
+                                <span class="text-sm text-zinc-300" th:text="#{setup.language.bg}">Български</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors shadow-lg shadow-violet-950/40"
+                    th:text="#{setup.button}">Complete Setup</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Pre-fill timezone from browser
+    const tzInput = document.getElementById("timezone");
+    if (!tzInput.value) {
+        try { tzInput.value = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (_) {}
+    }
+
+    // Reload page with ?lang= when language selection changes
+    document.querySelectorAll('input[name="language"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', this.value);
+            window.location.href = url.toString();
+        });
+    });
+</script>
+
+</body>
+</html>

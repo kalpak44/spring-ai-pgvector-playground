@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{settings.title}">AI Assistant — Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center px-6 gap-4 shrink-0" style="background:#0c0c0f;">
+    <a href="/settings" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+        </svg>
+        <span class="text-sm" th:text="#{settings.back}">Back to Settings</span>
+    </a>
+    <span class="text-zinc-700">|</span>
+    <span class="text-zinc-300 text-sm font-medium" th:text="#{settings.nav.users}">Users</span>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-2xl flex flex-col gap-6">
+
+        <!-- Invite link flash -->
+        <div th:if="${inviteLink}" class="bg-zinc-900 border border-violet-500/30 rounded-2xl p-4 flex flex-col gap-2">
+            <p class="text-xs text-violet-400 font-medium">
+                <span th:text="#{settings.users.invite_link_for}">Invite link for</span>
+                <span class="font-mono" th:text="${inviteUsername}"></span>
+            </p>
+            <div class="flex gap-2 items-center">
+                <input id="invite-link-input" type="text" readonly th:value="${inviteLink}"
+                       class="flex-1 bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-xs text-zinc-300 font-mono focus:outline-none focus:border-violet-500/60 truncate"/>
+                <button type="button" onclick="copyLink('invite-link-input', this)"
+                        class="shrink-0 flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 text-zinc-400 hover:text-zinc-200 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/>
+                    </svg>
+                    Copy
+                </button>
+            </div>
+        </div>
+
+        <!-- Create user -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <p class="text-sm font-medium text-zinc-300 mb-4" th:text="#{settings.users.create_heading}">Create User</p>
+            <div th:if="${usersError}" class="mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" th:text="${usersError}"></div>
+            <form th:action="@{/settings/users/new}" method="post" class="flex gap-2 flex-wrap">
+                <input name="username" type="text" required th:placeholder="#{settings.users.field.username}"
+                       class="bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all w-40"/>
+                <select name="role"
+                        class="bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 transition-all">
+                    <option value="USER" th:text="#{settings.role.user}">User</option>
+                    <option value="ADMIN" th:text="#{settings.role.admin}">Admin</option>
+                </select>
+                <button type="submit"
+                        class="bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        th:text="#{settings.button.create_user}">Create</button>
+            </form>
+        </div>
+
+        <!-- User table -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl overflow-hidden">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-zinc-800/60">
+                        <th class="text-left px-5 py-3 text-xs font-medium text-zinc-500 uppercase tracking-widest" style="font-family:'JetBrains Mono',monospace;" th:text="#{settings.table.name}">Name</th>
+                        <th class="text-left px-5 py-3 text-xs font-medium text-zinc-500 uppercase tracking-widest" style="font-family:'JetBrains Mono',monospace;" th:text="#{settings.table.username}">Username</th>
+                        <th class="text-left px-5 py-3 text-xs font-medium text-zinc-500 uppercase tracking-widest" style="font-family:'JetBrains Mono',monospace;" th:text="#{settings.table.role}">Role</th>
+                        <th class="text-left px-5 py-3 text-xs font-medium text-zinc-500 uppercase tracking-widest" style="font-family:'JetBrains Mono',monospace;" th:text="#{settings.table.status}">Status</th>
+                        <th class="w-10 px-3 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}" class="group border-b border-zinc-800/40 last:border-0 hover:bg-zinc-800/30 transition-colors">
+                        <td class="px-5 py-3 text-zinc-300 text-xs">
+                            <span th:if="${u.firstName != null}" th:text="${u.firstName + ' ' + (u.lastName ?: '')}"></span>
+                            <span th:unless="${u.firstName != null}" class="text-zinc-600">—</span>
+                        </td>
+                        <td class="px-5 py-3 text-zinc-200 font-mono text-xs" th:text="${u.username}"></td>
+                        <td class="px-5 py-3">
+                            <span th:if="${u.role.name() == 'ADMIN'}"
+                                  class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-300 border border-violet-500/25"
+                                  th:text="#{settings.role.admin}">Admin</span>
+                            <span th:unless="${u.role.name() == 'ADMIN'}"
+                                  class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30"
+                                  th:text="#{settings.role.user}">User</span>
+                        </td>
+                        <td class="px-5 py-3">
+                            <!-- Pending: invite not yet completed -->
+                            <div th:if="${u.inviteToken != null}" class="flex items-center gap-2">
+                                <span class="inline-flex items-center gap-1.5 text-xs text-amber-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                    <span th:text="#{settings.status.pending}">Pending</span>
+                                </span>
+                                <button type="button"
+                                        th:data-token="${u.inviteToken}"
+                                        onclick="copyInviteToken(this)"
+                                        title="Copy invite link"
+                                        class="text-zinc-600 hover:text-zinc-300 transition-colors p-0.5 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- Active: invite completed -->
+                            <span th:if="${u.inviteToken == null and u.enabled}" class="inline-flex items-center gap-1.5 text-xs text-emerald-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                <span th:text="#{settings.status.active}">Active</span>
+                            </span>
+                            <!-- Disabled -->
+                            <span th:if="${u.inviteToken == null and !u.enabled}" class="inline-flex items-center gap-1.5 text-xs text-zinc-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span>
+                                <span th:text="#{settings.status.disabled}">Disabled</span>
+                            </span>
+                        </td>
+                        <!-- Delete -->
+                        <td class="px-3 py-3 text-right">
+                            <form th:if="${u.username != currentUsername}"
+                                  th:action="@{/settings/users/{id}/delete(id=${u.id})}"
+                                  method="post"
+                                  th:attr="onsubmit=|return confirm('#{settings.users.delete.confirm}')|">
+                                <button type="submit"
+                                        class="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-all p-1 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(users)}">
+                        <td colspan="5" class="px-5 py-8 text-center text-zinc-600 text-sm" th:text="#{settings.users.empty}">No users.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function copyInviteToken(btn) {
+        const link = window.location.origin + '/invite/' + btn.dataset.token;
+        navigator.clipboard.writeText(link).then(function () {
+            const original = btn.innerHTML;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+            setTimeout(function () { btn.innerHTML = original; }, 1500);
+        });
+    }
+
+    function copyLink(inputId, btn) {
+        const val = document.getElementById(inputId).value;
+        navigator.clipboard.writeText(val).then(function () {
+            const orig = btn.textContent.trim();
+            btn.textContent = 'Copied!';
+            btn.classList.add('text-emerald-400');
+            setTimeout(function () {
+                btn.textContent = orig;
+                btn.classList.remove('text-emerald-400');
+            }, 1500);
+        });
+    }
+</script>
+
+</body>
+</html>

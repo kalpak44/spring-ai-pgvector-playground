@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{settings.title}">AI Assistant — Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center px-6 gap-4 shrink-0" style="background:#0c0c0f;">
+    <a href="/settings" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+        </svg>
+        <span class="text-sm" th:text="#{settings.back}">Back to Settings</span>
+    </a>
+    <span class="text-zinc-700">|</span>
+    <span class="text-zinc-300 text-sm font-medium" th:text="#{settings.nav.system}">System</span>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-lg">
+
+        <div th:if="${systemSuccess}" class="mb-5 px-3 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm" th:text="${systemSuccess}"></div>
+
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
+            <form th:action="@{/settings/system}" method="post" class="flex flex-col gap-4">
+
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-zinc-400" th:text="#{settings.field.ollama_url}">Ollama Base URL</label>
+                        <input name="ollamaBaseUrl" type="text" required th:value="${ollamaBaseUrl}" placeholder="http://localhost:11434"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-zinc-400" th:text="#{settings.field.model}">Model</label>
+                        <input name="ollamaModel" type="text" required th:value="${ollamaModel}" placeholder="gemma3:4b-it-q4_K_M"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+                    </div>
+                </div>
+
+                <div class="border-t border-zinc-800/60 pt-4 flex flex-col gap-3">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-zinc-400" th:text="#{settings.field.timezone}">Timezone</label>
+                        <input name="timezone" type="text" required th:value="${timezone}" placeholder="Europe/Sofia"
+                               class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-xs text-zinc-400" th:text="#{settings.field.language}">Language</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="language" value="en" th:checked="${language == 'en'}" class="accent-violet-500"/>
+                                <span class="text-sm text-zinc-300" th:text="#{settings.language.en}">English</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="language" value="bg" th:checked="${language == 'bg'}" class="accent-violet-500"/>
+                                <span class="text-sm text-zinc-300" th:text="#{settings.language.bg}">Български</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                    <button type="submit"
+                            class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40"
+                            th:text="#{settings.button.save_system}">Save System Settings</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{invite.title}">AI Assistant — Set Up Your Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex items-center justify-center py-10" style="font-family:'Outfit',sans-serif;">
+
+<div class="w-full max-w-md mx-4">
+
+    <!-- Logo -->
+    <div class="flex items-center justify-center gap-2.5 mb-8">
+        <div class="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-900/50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/>
+            </svg>
+        </div>
+        <span class="text-zinc-100 font-semibold text-lg tracking-tight" style="font-family:'JetBrains Mono',monospace;">AI Assistant</span>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6 shadow-2xl shadow-black/40">
+
+        <div class="mb-5">
+            <h1 class="text-zinc-100 font-semibold text-base" th:text="#{invite.heading}">Welcome to AI Assistant</h1>
+            <p class="text-zinc-500 text-xs mt-1" th:text="#{invite.description}">Set up your name and password to activate your account.</p>
+        </div>
+
+        <div th:if="${error}" class="mb-4 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" th:text="${error}"></div>
+
+        <form th:action="@{/invite/{token}(token=${token})}" method="post" class="flex flex-col gap-4">
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{settings.field.first_name}">First Name</label>
+                    <input name="firstName" type="text" required autofocus placeholder="Jane"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{settings.field.last_name}">Last Name</label>
+                    <input name="lastName" type="text" required placeholder="Smith"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+            </div>
+
+            <div class="border-t border-zinc-800/60 pt-4 grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{settings.field.new_password}">Password</label>
+                    <input name="password" type="password" required placeholder="••••••"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{settings.field.confirm}">Confirm</label>
+                    <input name="passwordConfirm" type="password" required placeholder="••••••"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors shadow-lg shadow-violet-950/40"
+                    th:text="#{invite.button}">Create Account</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

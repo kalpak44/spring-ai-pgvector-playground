@@ -6,11 +6,9 @@ import online.pavelusanli.model.ChatEntry;
 import online.pavelusanli.model.Role;
 import online.pavelusanli.repo.ChatRepository;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -32,22 +30,21 @@ public class ChatService {
     @Autowired
     private ChatService myProxy;
 
-    public List<Chat> getAllChats() {
-        return chatRepo.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    public List<Chat> getAllChats(Long userId) {
+        return chatRepo.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public Chat createNewChat(String title) {
-        Chat chat = Chat.builder().title(title).build();
-        chatRepo.save(chat);
-        return chat;
+    public Chat createNewChat(String title, Long userId) {
+        Chat chat = Chat.builder().title(title).userId(userId).build();
+        return chatRepo.save(chat);
     }
 
-    public Chat getChat(Long chatId) {
-        return chatRepo.findById(chatId).orElseThrow();
+    public Chat getChat(Long chatId, Long userId) {
+        return chatRepo.findByIdAndUserId(chatId, userId).orElseThrow();
     }
 
-    public void deleteChat(Long chatId) {
-        chatRepo.deleteById(chatId);
+    public void deleteChat(Long chatId, Long userId) {
+        chatRepo.findByIdAndUserId(chatId, userId).ifPresent(chatRepo::delete);
     }
 
     @Transactional
@@ -57,15 +54,20 @@ public class ChatService {
     }
 
     @Transactional
-    public void proceedInteraction(Long chatId, String prompt) {
+    public void proceedInteraction(Long chatId, Long userId, String prompt) {
+        chatRepo.findByIdAndUserId(chatId, userId).orElseThrow();
         myProxy.addChatEntry(chatId, prompt, USER);
         String answer = chatClient.prompt().user(prompt).call().content();
         myProxy.addChatEntry(chatId, answer, ASSISTANT);
     }
 
-    public SseEmitter proceedInteractionWithStreaming(Long chatId, String userPrompt) {
+    public SseEmitter proceedInteractionWithStreaming(Long chatId, Long userId, String userPrompt) {
         SseEmitter sseEmitter = new SseEmitter(0L);
-        final StringBuilder answer = new StringBuilder();
+
+        if (chatRepo.findByIdAndUserId(chatId, userId).isEmpty()) {
+            sseEmitter.complete();
+            return sseEmitter;
+        }
 
         chatClient
                 .prompt(userPrompt)
@@ -73,16 +75,14 @@ public class ChatService {
                 .stream()
                 .chatResponse()
                 .subscribe(
-                        (ChatResponse response) -> processToken(response, sseEmitter, answer),
+                        (ChatResponse response) -> processToken(response, sseEmitter),
                         sseEmitter::completeWithError,
                         sseEmitter::complete);
         return sseEmitter;
     }
 
     @SneakyThrows
-    private static void processToken(ChatResponse response, SseEmitter emitter, StringBuilder answer) {
-        var token = response.getResult().getOutput();
-        emitter.send(token);
-        answer.append(token.getText());
+    private static void processToken(ChatResponse response, SseEmitter emitter) {
+        emitter.send(response.getResult().getOutput());
     }
 }
