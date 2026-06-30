@@ -1,0 +1,53 @@
+Retrieval-Augmented Generation (RAG)
+
+RAG is an architectural pattern that enhances LLM responses by retrieving relevant information from an external knowledge base at query time. Instead of relying solely on what the model learned during training, RAG grounds answers in up-to-date, domain-specific documents.
+
+How RAG Works
+
+1. Ingestion Phase
+   Documents are loaded, split into smaller chunks, converted to embedding vectors, and stored in a vector database. This phase runs offline, typically triggered by a document upload or scheduled job.
+
+2. Retrieval Phase
+   When a user submits a query, it is converted to an embedding vector using the same embedding model used during ingestion. The vector store performs a similarity search (cosine similarity or dot product) to find the most relevant document chunks.
+
+3. Augmentation Phase
+   Retrieved chunks are injected into the prompt as context before the user question. The LLM is instructed to answer only based on the provided context.
+
+4. Generation Phase
+   The LLM generates a response grounded in the retrieved context. If no relevant documents are found, the prompt can instruct the model to acknowledge this rather than hallucinate.
+
+Document Chunking Strategies
+
+Fixed-size chunking: Split text into chunks of N tokens with optional overlap. Simple and predictable, but may cut sentences mid-way.
+
+Recursive character splitting: Split on paragraph breaks, then sentence breaks, then word breaks — preserving semantic boundaries as much as possible.
+
+Semantic chunking: Use an embedding model to detect topic shifts and split at natural semantic boundaries. More accurate but computationally expensive.
+
+Chunk overlap: A sliding window overlap (e.g. 10-20% of chunk size) ensures context is not lost at chunk boundaries during retrieval.
+
+Similarity Search Methods
+
+Cosine similarity: Measures the angle between two vectors. Values range from -1 to 1; higher means more similar. Most common for text embeddings.
+
+Dot product: Similar to cosine but sensitive to vector magnitude. Useful when embeddings are normalized.
+
+L2 (Euclidean) distance: Measures straight-line distance between vectors. Lower means more similar.
+
+Vector Index Types
+
+HNSW (Hierarchical Navigable Small World): Graph-based index that trades a small amount of recall for very fast approximate nearest-neighbor search. Suitable for high-dimensional vectors and real-time queries.
+
+IVFFlat (Inverted File with Flat quantization): Partitions vectors into clusters (Voronoi cells) and searches only the nearest clusters. Good recall-speed balance for large datasets, but requires training on existing data.
+
+No index (sequential scan): Computes exact similarity against every vector. Accurate but slow at scale. Suitable only for small datasets or offline batch jobs.
+
+Metadata Filtering
+Vector stores support filtering results by metadata fields (e.g. document type, author, date). This allows scoping retrieval to a subset of the knowledge base without recomputing embeddings.
+
+Evaluation Metrics
+
+Faithfulness: Does the generated answer only contain claims supported by the retrieved context?
+Answer relevance: Is the generated answer relevant to the original question?
+Context recall: Did the retrieval surface the documents actually needed to answer the question?
+Context precision: Are the retrieved documents mostly relevant, or is there a lot of noise?

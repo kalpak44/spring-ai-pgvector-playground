@@ -1,0 +1,79 @@
+pgvector Guide
+
+pgvector is an open-source PostgreSQL extension that adds vector similarity search to a standard Postgres database. It allows storing, indexing, and querying high-dimensional float vectors directly in SQL, making it a convenient choice for RAG applications that already use PostgreSQL.
+
+Installation and Setup
+
+pgvector is available as an extension and must be enabled per database:
+
+  CREATE EXTENSION IF NOT EXISTS vector;
+
+The ankane/pgvector Docker image bundles pgvector with PostgreSQL and is ready to use without manual compilation.
+
+Data Types
+
+vector(n): A fixed-dimension float vector of n dimensions. Dimensions must match across all rows in a column. Example: vector(1024) for mxbai-embed-large embeddings.
+
+halfvec(n): Half-precision (16-bit) float vector. Uses half the storage of vector(n), suitable when memory is a concern and slight precision loss is acceptable.
+
+bit(n): Binary vector, useful for binary embeddings.
+
+Creating a Vector Table
+
+  CREATE TABLE vector_store (
+    id        VARCHAR(255) PRIMARY KEY,
+    content   TEXT,
+    metadata  JSON,
+    embedding VECTOR(1024)
+  );
+
+Distance Operators
+
+<=>   Cosine distance        (1 - cosine similarity)
+<->   L2 (Euclidean) distance
+<#>   Negative dot product   (for max inner product search)
+
+Example similarity search returning the 5 nearest neighbors by cosine distance:
+
+  SELECT id, content, metadata, embedding <=> '[0.1, 0.2, ...]' AS distance
+  FROM vector_store
+  ORDER BY distance
+  LIMIT 5;
+
+Indexes
+
+HNSW index (recommended for most use cases):
+
+  CREATE INDEX ON vector_store USING hnsw (embedding vector_cosine_ops);
+
+IVFFlat index (alternative for very large datasets):
+
+  CREATE INDEX ON vector_store USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+  -- lists = sqrt(number of rows) is a common starting point
+
+Index operator classes:
+  vector_cosine_ops   — for <=> (cosine distance)
+  vector_l2_ops       — for <-> (L2 distance)
+  vector_ip_ops       — for <#> (inner product)
+
+Spring AI Integration
+
+Spring AI auto-configures a PgVectorStore bean when the spring-ai-starter-vector-store-pgvector dependency is on the classpath. Key properties:
+
+  spring.ai.vectorstore.pgvector.initialize-schema=true
+  spring.ai.vectorstore.pgvector.table-name=vector_store
+  spring.ai.vectorstore.pgvector.dimensions=1024
+  spring.ai.vectorstore.pgvector.distance-type=COSINE_DISTANCE
+  spring.ai.vectorstore.pgvector.index-type=HNSW
+
+The dimensions value must match the output dimension of the embedding model in use. For mxbai-embed-large the correct value is 1024; for nomic-embed-text it is 768.
+
+Metadata Filtering
+pgvector's metadata column stores a JSON object. Spring AI translates FilterExpression objects into SQL WHERE clauses with JSON operators, enabling retrieval scoped to specific document types, authors, or any other metadata field stored during ingestion.
+
+Performance Tips
+- Always create an index before querying large tables; sequential scan does not scale.
+- For HNSW, tune m (max connections per node, default 16) and ef_construction (build-time search width, default 64) for recall-speed trade-offs.
+- For IVFFlat, the lists parameter should be roughly sqrt(row count); probes at query time controls the recall-speed trade-off.
+- Normalize embeddings before storing if using inner product search.
+- Use VACUUM ANALYZE after bulk inserts to keep the query planner statistics current.
