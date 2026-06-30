@@ -57,7 +57,7 @@ replay_pid*
 
 # ==================== Docker volumes ====================
 ollama/
-postgres/data/
+postgres/
 
 # ==================== Environment / Secrets ====================
 .env
