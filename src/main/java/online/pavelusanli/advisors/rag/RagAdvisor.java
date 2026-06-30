@@ -20,7 +20,6 @@ import static online.pavelusanli.advisors.expansion.ExpansionQueryAdvisor.ENRICH
 @Builder
 public class RagAdvisor implements BaseAdvisor {
 
-    @Builder.Default
     private static final PromptTemplate template = PromptTemplate.builder().template("""
             CONTEXT: {context}
             Question: {question}

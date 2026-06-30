@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 @Builder
 public class BM25RerankEngine {
 
-    @Builder.Default
     private static final LanguageDetector languageDetector = LanguageDetectorBuilder
             .fromLanguages(Language.ENGLISH, Language.RUSSIAN)
             .build();

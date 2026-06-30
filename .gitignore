@@ -55,6 +55,10 @@ log/
 hs_err_pid*
 replay_pid*
 
+# ==================== Docker volumes ====================
+ollama/
+postgres/data/
+
 # ==================== Environment / Secrets ====================
 .env
 .env.*
