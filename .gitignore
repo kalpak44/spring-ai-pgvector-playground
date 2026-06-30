@@ -56,8 +56,8 @@ hs_err_pid*
 replay_pid*
 
 # ==================== Docker volumes ====================
-ollama/
-postgres/
+/ollama/
+/postgres/
 
 # ==================== Environment / Secrets ====================
 .env
