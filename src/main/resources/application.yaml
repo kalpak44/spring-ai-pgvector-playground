@@ -17,6 +17,10 @@ spring:
   #     pgvector:
   #       table-name:
 
+app:
+  knowledgebase:
+    path: knowledgebase
+
 logging:
   level:
     org.springframework.ai.chat.client.advisor: DEBUG

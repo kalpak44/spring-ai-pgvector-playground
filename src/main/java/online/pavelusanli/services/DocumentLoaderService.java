@@ -8,6 +8,7 @@ import org.springframework.ai.reader.TextReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -30,9 +31,12 @@ public class DocumentLoaderService implements CommandLineRunner {
     @Autowired
     private VectorStore vectorStore;
 
+    @Value("${app.knowledgebase.path:knowledgebase}")
+    private String knowledgebasePath;
+
     @SneakyThrows
     public void loadDocuments() {
-        List<Resource> resources = Arrays.stream(resolver.getResources("classpath:/knowledgebase/**/*.txt")).toList();
+        List<Resource> resources = Arrays.stream(resolver.getResources("file:" + knowledgebasePath + "/**/*.txt")).toList();
 
         resources.stream()
                 .map(resource -> Pair.of(resource, calcContentHash(resource)))
