@@ -4,8 +4,8 @@ Node.js MCP server for Gmail and Google Calendar.
 
 ## Purpose
 
-This project is a local MCP server that allows AI assistants to read and write Gmail and Google Calendar data.
-It runs over HTTP on port 3100 and is stateless — the caller supplies a Google OAuth access token with every request.
+This project is an MCP server that allows AI assistants to read and write Gmail and Google Calendar data.
+It runs over HTTP and is stateless — the caller supplies a Google OAuth access token with every request.
 Token acquisition and refresh are handled by the Spring Boot application.
 
 - List, get, search, and send Gmail messages
@@ -39,7 +39,7 @@ The server listens on `http://localhost:3100/mcp` by default. Set the `PORT` env
 
 ```bash
 claude mcp add mcp-google \
-  http://localhost:3100/mcp \
+  https://google-assistant.pavel-usanli.online/mcp \
   --transport http \
   --header "Authorization: Bearer YOUR_GOOGLE_ACCESS_TOKEN"
 ```
@@ -55,7 +55,7 @@ claude mcp remove mcp-google
 ```bash
 export GOOGLE_ACCESS_TOKEN="YOUR_GOOGLE_ACCESS_TOKEN"
 codex mcp add mcp-google \
-  --url http://localhost:3100/mcp \
+  --url https://google-assistant.pavel-usanli.online/mcp \
   --bearer-token-env-var GOOGLE_ACCESS_TOKEN
 ```
 
