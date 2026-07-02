@@ -6,9 +6,15 @@ import { registerCalendarTools } from "./tools/calendar.js";
 
 const PORT = process.env.PORT ?? 3100;
 const app = express();
+
+app.disable("x-powered-by");
 app.use(express.json());
 
-app.all("/mcp", async (req, res) => {
+app.get("/mcp", (_req, res) => {
+  res.status(405).json({ error: "SSE not supported in stateless mode" });
+});
+
+app.post("/mcp", async (req, res) => {
   const authHeader = req.headers.authorization ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
@@ -24,6 +30,7 @@ app.all("/mcp", async (req, res) => {
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   await server.connect(transport);
   await transport.handleRequest(req, res, req.body);
+  await server.close();
 });
 
 app.listen(PORT, () => {

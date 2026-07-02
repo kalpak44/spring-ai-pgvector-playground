@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Models used by this project
-CHAT_MODEL="gemma3:4b-it-q4_K_M"
+CHAT_MODEL="gemma4:e4b"
 EMBED_MODEL="mxbai-embed-large"
 
 # Port the app expects (spring.ai.ollama.base-url: http://localhost:11431)
