@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${card.title} + ' — ' + ${board.name} + ' — ' + #{app.title}">Ticket — AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    </style>
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- ── Delete ticket confirm modal ───────────────────────────────────── -->
+<div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideDeleteModal()"></div>
+    <div class="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+        <p class="text-zinc-100 font-medium mb-2" th:text="#{boards.ticket.delete.confirm}">Delete this ticket?</p>
+        <p class="text-zinc-500 text-sm mb-6 line-clamp-2" th:text="${card.title}"></p>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="hideDeleteModal()"
+                    class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                    th:text="#{boards.ticket.button.cancel}">Cancel</button>
+            <form th:action="@{/apps/boards/{b}/cards/{c}/delete(b=${board.id},c=${card.id})}" method="post">
+                <button type="submit"
+                        class="bg-red-700 hover:bg-red-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+                        th:text="#{boards.ticket.button.delete}">Delete Ticket</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── Comment delete confirm modal ──────────────────────────────────── -->
+<div id="commentDeleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideCommentDeleteModal()"></div>
+    <div class="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+        <p class="text-zinc-100 font-medium mb-6" th:text="#{boards.comments.delete.confirm}">Delete this comment?</p>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="hideCommentDeleteModal()"
+                    class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                    th:text="#{boards.ticket.button.cancel}">Cancel</button>
+            <form id="commentDeleteForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit"
+                        class="bg-red-700 hover:bg-red-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+                        th:text="#{settings.button.delete}">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── Header ────────────────────────────────────────────────────────── -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0 sticky top-0 z-20" style="background:#0c0c0f;">
+    <div class="flex items-center gap-3 min-w-0">
+        <a th:href="@{/apps/boards/{id}(id=${board.id})}"
+           class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm truncate max-w-[140px]" th:text="${board.name}">Board</span>
+        </a>
+        <span class="text-zinc-700 shrink-0">/</span>
+        <span class="text-zinc-600 text-sm truncate max-w-[120px]" th:text="${column.name}">Column</span>
+        <span class="text-zinc-700 shrink-0">/</span>
+        <span class="text-zinc-300 text-sm font-medium truncate" th:text="${card.title}">Ticket</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+        <div class="w-px h-4 bg-zinc-800 mx-1"></div>
+        <span class="text-xs text-zinc-500 hidden sm:block" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" th:title="#{action.sign_out}" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- ── Flash messages ─────────────────────────────────────────────────── -->
+<div th:if="${cardDetailError}"
+     class="px-6 py-2.5 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between gap-3">
+    <p class="text-red-400 text-sm" th:text="${cardDetailError}"></p>
+    <button type="button" onclick="this.parentElement.remove()" class="text-red-400/60 hover:text-red-400 p-0.5 rounded shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+<div th:if="${cardDetailSuccess}"
+     id="successFlash"
+     class="px-6 py-2.5 bg-green-500/10 border-b border-green-500/20 flex items-center justify-between gap-3">
+    <p class="text-green-400 text-sm" th:text="${cardDetailSuccess}"></p>
+    <button type="button" onclick="this.parentElement.remove()" class="text-green-400/60 hover:text-green-400 p-0.5 rounded shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+
+<!-- ── Main content ───────────────────────────────────────────────────── -->
+<main class="flex-1 w-full max-w-6xl mx-auto px-6 py-8 flex flex-col gap-10">
+
+    <!-- ══ Card edit form ═══════════════════════════════════════════════ -->
+    <form id="cardUpdateForm"
+          th:action="@{/apps/boards/{b}/cards/{c}(b=${board.id},c=${card.id})}"
+          method="post">
+
+        <div class="flex flex-col lg:flex-row lg:items-stretch gap-8">
+
+            <!-- ── Left: text fields ─────────────────────────────────── -->
+            <div class="flex-1 min-w-0 flex flex-col gap-5">
+
+                <!-- Title -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-500 uppercase tracking-widest"
+                           style="font-family:'JetBrains Mono',monospace;"
+                           th:text="#{boards.ticket.field.title}">Title</label>
+                    <input name="title" type="text" required maxlength="255"
+                           th:value="${card.title}"
+                           class="w-full bg-transparent border-0 border-b border-zinc-800 pb-2 text-xl text-zinc-100 font-medium placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 transition-colors"/>
+                </div>
+
+                <!-- Description -->
+                <div class="flex-1 flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-500 uppercase tracking-widest"
+                           style="font-family:'JetBrains Mono',monospace;"
+                           th:text="#{boards.ticket.field.long_desc}">Description</label>
+                    <textarea name="descriptionLong" maxlength="10000"
+                              th:placeholder="#{boards.detail.card.field.desc_long.placeholder}"
+                              th:text="${card.descriptionLong}"
+                              class="flex-1 min-h-[160px] w-full bg-zinc-900/60 border border-zinc-800/60 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- ── Right: metadata sidebar ───────────────────────────── -->
+            <div class="lg:w-68 xl:w-72 flex flex-col gap-4 shrink-0">
+
+                <p class="text-xs text-zinc-500 uppercase tracking-widest hidden lg:block"
+                   style="font-family:'JetBrains Mono',monospace;"
+                   th:text="#{boards.ticket.heading.detail}">Details</p>
+
+                <!-- Priority -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-zinc-600" th:text="#{boards.ticket.field.priority}">Priority</label>
+                    <select name="priority"
+                            class="w-full bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all">
+                        <option value="" th:selected="${card.priority == null}"
+                                th:text="#{boards.detail.card.field.priority.none}">No Priority</option>
+                        <option th:each="p : ${priorities}"
+                                th:value="${p.name()}"
+                                th:selected="${card.priority != null and card.priority == p}"
+                                th:text="#{|boards.priority.${#strings.toLowerCase(p.name())}|}">Priority</option>
+                    </select>
+                </div>
+
+                <!-- Column -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-zinc-600" th:text="#{boards.ticket.field.column}">Column</label>
+                    <select name="columnId"
+                            class="w-full bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all">
+                        <option th:each="col : ${columns}"
+                                th:value="${col.id}"
+                                th:selected="${col.id == card.columnId}"
+                                th:text="${col.name}">Column</option>
+                    </select>
+                </div>
+
+                <!-- Deadline -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-zinc-600" th:text="#{boards.ticket.field.deadline}">Deadline</label>
+                    <input name="deadline" type="date"
+                           th:value="${card.deadline != null ? #temporals.format(card.deadline, 'yyyy-MM-dd') : ''}"
+                           class="w-full bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all [color-scheme:dark]"/>
+                </div>
+
+                <!-- Color -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-zinc-600" th:text="#{boards.ticket.field.color}">Color</label>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="radio" name="color" value="" class="hidden peer"
+                                   th:checked="${card.color == null or card.color.isEmpty()}">
+                            <span class="w-5 h-5 rounded-full border-2 border-zinc-600 peer-checked:border-violet-400 peer-checked:ring-2 peer-checked:ring-violet-400/30 transition-all bg-zinc-800"></span>
+                            <span class="text-xs text-zinc-500" th:text="#{boards.detail.card.field.color.none}">None</span>
+                        </label>
+                        <label th:each="c : ${@cardColorUtils.colors()}" class="cursor-pointer">
+                            <input type="radio" name="color" th:value="${c}" class="hidden peer"
+                                   th:checked="${c == card.color}">
+                            <span th:style="'background:' + ${@cardColorUtils.hex(c)}"
+                                  class="block w-5 h-5 rounded-full border-2 border-transparent peer-checked:border-white peer-checked:ring-2 peer-checked:ring-white/30 transition-all hover:scale-110"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Assignees -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-600" th:text="#{boards.ticket.field.assignee}">Assignees</label>
+                    <div id="assigneeChips" class="flex flex-wrap gap-1.5">
+                        <span th:each="u : ${assigneeUsers}"
+                              th:data-user-id="${u.id}"
+                              class="inline-flex items-center gap-1.5 bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs px-2.5 py-1 rounded-full">
+                            <span th:text="${(u.firstName != null and !u.firstName.isEmpty()) ? u.firstName + (u.lastName != null ? ' ' + u.lastName : '') : u.username}"></span>
+                            <button type="button" onclick="removeUser('assignee', this)"
+                                    class="text-violet-400 hover:text-violet-200 transition-colors leading-none ml-1">&times;</button>
+                        </span>
+                        <input th:each="u : ${assigneeUsers}" type="hidden" name="assigneeIds"
+                               th:value="${u.id}" th:attr="data-user-id=${u.id}"/>
+                    </div>
+                    <div id="assigneeSearchWrapper" class="relative">
+                        <div class="flex items-center gap-2 bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-3 py-2 focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/>
+                            </svg>
+                            <input type="text" id="assigneeSearch"
+                                   th:placeholder="#{boards.detail.card.field.assignees.placeholder}"
+                                   autocomplete="off"
+                                   oninput="onUserInput('assignee', this.value)"
+                                   class="flex-1 bg-transparent text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"/>
+                        </div>
+                        <div id="assigneeDropdown"
+                             class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto custom-scroll"></div>
+                    </div>
+                </div>
+
+                <!-- Watchers -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-600" th:text="#{boards.ticket.field.watchers}">Watchers</label>
+                    <div id="watcherChips" class="flex flex-wrap gap-1.5">
+                        <span th:each="u : ${watcherUsers}"
+                              th:data-user-id="${u.id}"
+                              class="inline-flex items-center gap-1.5 bg-zinc-700/40 border border-zinc-600/40 text-zinc-300 text-xs px-2.5 py-1 rounded-full">
+                            <span th:text="${(u.firstName != null and !u.firstName.isEmpty()) ? u.firstName + (u.lastName != null ? ' ' + u.lastName : '') : u.username}"></span>
+                            <button type="button" onclick="removeUser('watcher', this)"
+                                    class="text-zinc-400 hover:text-zinc-200 transition-colors leading-none ml-1">&times;</button>
+                        </span>
+                        <input th:each="u : ${watcherUsers}" type="hidden" name="watcherIds"
+                               th:value="${u.id}" th:attr="data-user-id=${u.id}"/>
+                    </div>
+                    <div id="watcherSearchWrapper" class="relative">
+                        <div class="flex items-center gap-2 bg-zinc-900/60 border border-zinc-800/60 rounded-lg px-3 py-2 focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/>
+                            </svg>
+                            <input type="text" id="watcherSearch"
+                                   th:placeholder="#{boards.detail.card.field.watchers.placeholder}"
+                                   autocomplete="off"
+                                   oninput="onUserInput('watcher', this.value)"
+                                   class="flex-1 bg-transparent text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none"/>
+                        </div>
+                        <div id="watcherDropdown"
+                             class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto custom-scroll"></div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-zinc-800/60 my-1"></div>
+
+                <!-- Created / Updated -->
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-0.5">
+                        <p class="text-xs text-zinc-600" th:text="#{boards.ticket.field.created}">Created</p>
+                        <p class="text-zinc-500 text-xs" style="font-family:'JetBrains Mono',monospace;"
+                           th:text="${@dateDisplayUtils.format(card.createdAt, userZoneId, 'MMM d, yyyy HH:mm')}"></p>
+                        <p th:if="${createdByUser != null}" class="text-zinc-600 text-xs"
+                           th:text="${createdByUser.firstName != null and !createdByUser.firstName.isEmpty() ? createdByUser.firstName + (createdByUser.lastName != null ? ' ' + createdByUser.lastName : '') : createdByUser.username}"></p>
+                    </div>
+                    <div class="flex flex-col gap-0.5">
+                        <p class="text-xs text-zinc-600" th:text="#{boards.ticket.field.updated}">Last Updated</p>
+                        <p class="text-zinc-500 text-xs" style="font-family:'JetBrains Mono',monospace;"
+                           th:text="${@dateDisplayUtils.format(card.updatedAt, userZoneId, 'MMM d, yyyy HH:mm')}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save / Delete row (below the two-column area) -->
+        <div class="flex items-center gap-3 mt-6 pt-6 border-t border-zinc-800/40">
+            <button type="submit"
+                    class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors shadow-md shadow-violet-950/40"
+                    th:text="#{boards.ticket.button.save}">Save Ticket</button>
+            <button type="button" onclick="showDeleteModal()"
+                    class="text-red-500/70 hover:text-red-400 text-sm transition-colors px-3 py-2.5"
+                    th:text="#{boards.ticket.button.delete}">Delete Ticket</button>
+        </div>
+
+    </form>
+    <!-- ══ END card edit form ════════════════════════════════════════════ -->
+
+    <!-- ══ Comments (separate from card form) ══════════════════════════ -->
+    <section class="flex flex-col gap-5">
+
+        <!-- Section header -->
+        <div class="flex items-center gap-2">
+            <div class="h-px flex-1 bg-zinc-800/60"></div>
+            <div class="flex items-center gap-2 px-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                </svg>
+                <p class="text-zinc-400 text-sm font-medium" th:text="#{boards.comments.heading}">Comments</p>
+                <span th:if="${!#lists.isEmpty(comments)}"
+                      class="text-zinc-600 text-xs" style="font-family:'JetBrains Mono',monospace;"
+                      th:text="'(' + ${#lists.size(comments)} + ')'"></span>
+            </div>
+            <div class="h-px flex-1 bg-zinc-800/60"></div>
+        </div>
+
+        <!-- Add comment form (standalone — NOT nested in card form) -->
+        <form th:action="@{/apps/boards/{b}/cards/{c}/comments(b=${board.id},c=${card.id})}"
+              method="post" class="flex flex-col gap-2">
+            <textarea name="content" rows="3" maxlength="2000"
+                      th:placeholder="#{boards.comments.placeholder}"
+                      class="w-full bg-zinc-900/60 border border-zinc-800/60 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/20 transition-all resize-none"></textarea>
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 text-zinc-300 hover:text-zinc-100 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        th:text="#{boards.comments.button}">Add Comment</button>
+            </div>
+        </form>
+
+        <!-- Empty state -->
+        <p th:if="${#lists.isEmpty(comments)}"
+           class="text-zinc-600 text-sm text-center py-4" th:text="#{boards.comments.empty}">No comments yet.</p>
+
+        <!-- Comment list (each with its own edit/delete forms — no nesting) -->
+        <div th:each="comment : ${comments}"
+             th:id="'comment-' + ${comment.id}"
+             class="bg-zinc-900/60 border border-zinc-800/60 rounded-xl p-4 flex flex-col gap-3">
+
+            <!-- Comment header -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-zinc-700/80 border border-zinc-600/40 flex items-center justify-center shrink-0"
+                         style="font-size:9px;font-family:'JetBrains Mono',monospace;">
+                        <span class="text-zinc-300"
+                              th:text="${authorsById[comment.authorId] != null ? #strings.substring(authorsById[comment.authorId].username, 0, 1).toUpperCase() : '?'}"></span>
+                    </div>
+                    <span class="text-zinc-300 text-xs font-medium"
+                          th:text="${authorsById[comment.authorId] != null ?
+                            (authorsById[comment.authorId].firstName != null and !authorsById[comment.authorId].firstName.isEmpty() ?
+                              authorsById[comment.authorId].firstName + (authorsById[comment.authorId].lastName != null ? ' ' + authorsById[comment.authorId].lastName : '') :
+                              authorsById[comment.authorId].username) : '—'}"></span>
+                </div>
+                <span class="text-zinc-700 text-xs shrink-0" style="font-family:'JetBrains Mono',monospace;"
+                      th:text="${@dateDisplayUtils.format(comment.updatedAt != null ? comment.updatedAt : comment.createdAt, userZoneId, 'MMM d, HH:mm')}"></span>
+            </div>
+
+            <!-- Comment content (shown by default) -->
+            <p th:id="'comment-text-' + ${comment.id}"
+               class="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap"
+               th:text="${comment.content}"></p>
+
+            <!-- Inline edit form (hidden by default, standalone — not nested) -->
+            <form th:id="'comment-edit-form-' + ${comment.id}"
+                  th:action="@{/apps/boards/{b}/cards/{c}/comments/{cm}(b=${board.id},c=${card.id},cm=${comment.id})}"
+                  method="post" class="hidden flex-col gap-2">
+                <textarea th:id="'comment-edit-content-' + ${comment.id}"
+                          name="content" rows="3" maxlength="2000"
+                          th:text="${comment.content}"
+                          class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all resize-none"></textarea>
+                <div class="flex gap-2 justify-end">
+                    <button type="button"
+                            th:onclick="|cancelEditComment(${comment.id})|"
+                            class="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                            th:text="#{boards.comments.cancel}">Cancel</button>
+                    <button type="submit"
+                            class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium px-4 py-1.5 rounded-lg transition-colors"
+                            th:text="#{boards.comments.save}">Save</button>
+                </div>
+            </form>
+
+            <!-- Actions (own comments only) -->
+            <div th:if="${comment.authorId != null and comment.authorId == currentUserId}"
+                 class="flex items-center gap-3">
+                <button type="button"
+                        th:onclick="|startEditComment(${comment.id})|"
+                        class="text-zinc-600 hover:text-zinc-400 text-xs transition-colors"
+                        th:text="#{boards.comments.edit}">Edit</button>
+                <span class="text-zinc-800 text-xs">·</span>
+                <button type="button"
+                        th:onclick="|showCommentDeleteModal('/apps/boards/' + ${board.id} + '/cards/' + ${card.id} + '/comments/' + ${comment.id} + '/delete')|"
+                        class="text-red-600/70 hover:text-red-400 text-xs transition-colors"
+                        th:text="#{settings.button.delete}">Delete</button>
+            </div>
+
+        </div>
+
+    </section>
+    <!-- ══ END comments ═════════════════════════════════════════════════ -->
+
+</main>
+
+<script th:inline="javascript">
+    const BOARD_ID = /*[[${board.id}]]*/ 0;
+
+    function showDeleteModal()        { document.getElementById('deleteModal').classList.remove('hidden'); }
+    function hideDeleteModal()        { document.getElementById('deleteModal').classList.add('hidden'); }
+    function hideCommentDeleteModal() { document.getElementById('commentDeleteModal').classList.add('hidden'); }
+
+    function showCommentDeleteModal(actionUrl) {
+        document.getElementById('commentDeleteForm').action = actionUrl;
+        document.getElementById('commentDeleteModal').classList.remove('hidden');
+    }
+
+    function startEditComment(id) {
+        document.getElementById('comment-text-' + id).classList.add('hidden');
+        const form = document.getElementById('comment-edit-form-' + id);
+        form.classList.remove('hidden');
+        form.classList.add('flex');
+        document.getElementById('comment-edit-content-' + id).focus();
+    }
+
+    function cancelEditComment(id) {
+        document.getElementById('comment-text-' + id).classList.remove('hidden');
+        const form = document.getElementById('comment-edit-form-' + id);
+        form.classList.add('hidden');
+        form.classList.remove('flex');
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            hideDeleteModal(); hideCommentDeleteModal();
+            closeDropdown('assignee'); closeDropdown('watcher');
+        }
+    });
+
+    // Auto-dismiss success flash after 3 s
+    const sf = document.getElementById('successFlash');
+    if (sf) setTimeout(() => sf.remove(), 3000);
+
+    // ── User autocomplete (assignees / watchers) ─────────────────────────
+    const _debounceTimers = {};
+
+    function onUserInput(type, value) {
+        clearTimeout(_debounceTimers[type]);
+        _debounceTimers[type] = setTimeout(() => fetchUserResults(type, value.trim()), 250);
+    }
+
+    async function fetchUserResults(type, q) {
+        if (q.length < 1) { closeDropdown(type); return; }
+        try {
+            const resp = await fetch(`/apps/boards/${BOARD_ID}/users/search?q=${encodeURIComponent(q)}`);
+            if (!resp.ok) return;
+            const users = await resp.json();
+            const picked = getPickedIds(type);
+            const filtered = users.filter(u => !picked.has(u.id));
+            if (!filtered.length) { closeDropdown(type); return; }
+
+            let dd = document.getElementById(type + 'DropdownPortal');
+            if (!dd) {
+                dd = document.createElement('div');
+                dd.id = type + 'DropdownPortal';
+                document.body.appendChild(dd);
+            }
+            const input = document.getElementById(type + 'Search');
+            const rect = input.getBoundingClientRect();
+            Object.assign(dd.style, {
+                display: 'block', position: 'fixed', zIndex: '9999',
+                top: (rect.bottom + 4) + 'px', left: rect.left + 'px', width: rect.width + 'px',
+                maxHeight: '13rem', overflowY: 'auto', scrollbarWidth: 'thin',
+                background: '#18181b', border: '1px solid #3f3f46',
+                borderRadius: '0.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,.8)'
+            });
+            dd.innerHTML = filtered.map(u =>
+                `<button type="button" onclick="pickUser('${type}', ${u.id}, '${escHtml(u.displayName)}')"
+                    style="display:block;width:100%;text-align:left;padding:8px 12px;font-size:14px;color:#e4e4e7;background:transparent;border:none;cursor:pointer;"
+                    onmouseover="this.style.background='#27272a'" onmouseout="this.style.background='transparent'">${escHtml(u.displayName)}</button>`
+            ).join('');
+        } catch (_) {}
+    }
+
+    function pickUser(type, id, displayName) {
+        const chips = document.getElementById(type + 'Chips');
+        const isWatcher = type === 'watcher';
+        const chip = document.createElement('span');
+        chip.className = isWatcher
+            ? 'inline-flex items-center gap-1.5 bg-zinc-700/40 border border-zinc-600/40 text-zinc-300 text-xs px-2.5 py-1 rounded-full'
+            : 'inline-flex items-center gap-1.5 bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs px-2.5 py-1 rounded-full';
+        chip.dataset.userId = id;
+        const btnColor = isWatcher ? 'text-zinc-400 hover:text-zinc-200' : 'text-violet-400 hover:text-violet-200';
+        chip.innerHTML = `${escHtml(displayName)}<button type="button" onclick="removeUser('${type}', this)" class="${btnColor} transition-colors leading-none ml-1">&times;</button>`;
+        chips.appendChild(chip);
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = type + 'Ids';
+        hidden.value = id;
+        hidden.dataset.userId = id;
+        chips.appendChild(hidden);
+        document.getElementById(type + 'Search').value = '';
+        closeDropdown(type);
+    }
+
+    function removeUser(type, btn) {
+        const chip = btn.closest('[data-user-id]');
+        const userId = chip.dataset.userId;
+        const chips = document.getElementById(type + 'Chips');
+        chip.remove();
+        const hidden = chips.querySelector(`input[data-user-id="${userId}"]`);
+        if (hidden) hidden.remove();
+    }
+
+    function closeDropdown(type) {
+        const portal = document.getElementById(type + 'DropdownPortal');
+        if (portal) portal.style.display = 'none';
+    }
+
+    function getPickedIds(type) {
+        const chips = document.getElementById(type + 'Chips');
+        return new Set(Array.from(chips.querySelectorAll('[data-user-id]'))
+            .map(el => +el.dataset.userId));
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.addEventListener('click', e => {
+        ['assignee', 'watcher'].forEach(type => {
+            const wrapper = document.getElementById(type + 'SearchWrapper');
+            const portal = document.getElementById(type + 'DropdownPortal');
+            if (wrapper && !wrapper.contains(e.target) && !(portal && portal.contains(e.target))) {
+                closeDropdown(type);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -2,31 +2,50 @@ package online.pavelusanli.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import online.pavelusanli.model.common.CardPriority;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 @Entity
-@Table(name = "board_column")
+@Table(name = "card")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardColumn {
+public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "board_id", nullable = false)
-    private Long boardId;
+    @Column(name = "column_id", nullable = false)
+    private Long columnId;
 
-    @Column(nullable = false, length = 128)
-    private String name;
+    @Column(nullable = false)
+    private String title;
+
+    @Column(name = "description_short", length = 512)
+    private String descriptionShort;
+
+    @Column(name = "description_long", columnDefinition = "TEXT")
+    private String descriptionLong;
 
     @Column(nullable = false)
     private int position;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 16)
+    private CardPriority priority;
+
+    @Column(length = 32)
+    private String color;
+
+    private LocalDateTime deadline;
+
+    @Column(name = "created_by")
+    private Long createdBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title th:text="${board.name} + ' — ' + #{app.title}">Board — AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .kanban-scroll::-webkit-scrollbar { width: 4px; }
+        .kanban-scroll::-webkit-scrollbar-track { background: transparent; }
+        .kanban-scroll::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        .kanban-scroll::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        .drag-over { outline: 2px dashed #7c3aed; outline-offset: -2px; }
+        .card-dragging { opacity: 0.4; }
+        [draggable=true] { cursor: grab; }
+        [draggable=true]:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="bg-zinc-950 h-screen flex flex-col overflow-hidden" style="font-family:'Outfit',sans-serif;">
+
+<!-- ── Notifications slide-over ─────────────────────────────────────── -->
+<div id="notifOverlay" class="hidden fixed inset-0 z-30 bg-black/40 backdrop-blur-sm" onclick="hideNotif()"></div>
+<div id="notifPanel" class="hidden fixed top-0 right-0 bottom-0 z-40 w-80 flex flex-col shadow-2xl border-l border-zinc-800/80" style="background:#0c0c0f;">
+    <div class="h-14 border-b border-zinc-800/60 flex items-center justify-between px-5 shrink-0">
+        <p class="text-zinc-200 text-sm font-medium" th:text="#{boards.detail.notifications}">Notifications</p>
+        <button onclick="hideNotif()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+    <div class="flex-1 min-h-0 overflow-y-auto kanban-scroll p-4 flex flex-col gap-2">
+        <div th:if="${#lists.isEmpty(notifications)}"
+             class="flex flex-col items-center justify-center gap-2 py-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+            </svg>
+            <p class="text-zinc-600 text-xs" th:text="#{boards.detail.notifications.empty}">No unread notifications.</p>
+        </div>
+        <div th:each="notif : ${notifications}"
+             class="bg-zinc-900 border border-zinc-800/60 rounded-xl px-3 py-2.5 flex flex-col gap-1">
+            <p class="text-zinc-300 text-xs font-medium" th:text="${notif.eventType}">EVENT</p>
+            <p class="text-zinc-600 text-xs"
+               style="font-family:'JetBrains Mono',monospace;"
+               th:text="${@dateDisplayUtils.format(notif.createdAt, userZoneId, 'MMM d, HH:mm')}"></p>
+        </div>
+    </div>
+    <div th:if="${!#lists.isEmpty(notifications)}"
+         class="p-4 border-t border-zinc-800/60 shrink-0">
+        <form th:action="@{/apps/boards/{id}/notifications/read(id=${board.id})}" method="post">
+            <button type="submit"
+                    class="w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 text-zinc-400 hover:text-zinc-200 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
+                    th:text="#{boards.detail.notifications.mark_all_read}">Mark all read</button>
+        </form>
+    </div>
+</div>
+
+<!-- ── Settings slide-over (owner only) ──────────────────────────────── -->
+<div th:if="${isOwner}">
+    <div id="settingsOverlay" class="hidden fixed inset-0 z-30 bg-black/40 backdrop-blur-sm" onclick="hideSettings()"></div>
+    <div id="settingsPanel" class="hidden fixed top-0 right-0 bottom-0 z-40 w-80 flex flex-col shadow-2xl border-l border-zinc-800/80" style="background:#0c0c0f;">
+        <div class="h-14 border-b border-zinc-800/60 flex items-center justify-between px-5 shrink-0">
+            <p class="text-zinc-200 text-sm font-medium" th:text="#{boards.detail.settings}">Settings</p>
+            <button onclick="hideSettings()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 min-h-0 overflow-y-auto kanban-scroll p-5 flex flex-col gap-4">
+            <p class="text-xs text-zinc-500 uppercase tracking-widest"
+               style="font-family:'JetBrains Mono',monospace;"
+               th:text="#{boards.detail.settings.section}">Board Information</p>
+            <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1">
+                    <p class="text-xs text-zinc-600" th:text="#{boards.detail.settings.field.name}">Name</p>
+                    <p class="text-zinc-200 text-sm" th:text="${board.name}"></p>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <p class="text-xs text-zinc-600" th:text="#{boards.detail.settings.field.description}">Description</p>
+                    <p th:if="${board.description != null and !board.description.isEmpty()}"
+                       class="text-zinc-400 text-xs leading-relaxed" th:text="${board.description}"></p>
+                    <p th:unless="${board.description != null and !board.description.isEmpty()}"
+                       class="text-zinc-700 text-xs">—</p>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <p class="text-xs text-zinc-600" th:text="#{boards.detail.settings.field.created}">Created</p>
+                    <p class="text-zinc-400 text-xs" style="font-family:'JetBrains Mono',monospace;"
+                       th:text="${@dateDisplayUtils.format(board.createdAt, userZoneId, 'MMM d, yyyy')}"></p>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <p class="text-xs text-zinc-600" th:text="#{boards.detail.settings.field.columns}">Columns</p>
+                    <p class="text-zinc-400 text-xs" style="font-family:'JetBrains Mono',monospace;"
+                       th:text="${#lists.size(columns)}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Card creation modal ───────────────────────────────────────────── -->
+<div id="cardModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideCardModal()"></div>
+    <div class="relative bg-zinc-900 border border-zinc-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-6 pb-4 shrink-0">
+            <p class="text-zinc-100 font-medium" th:text="#{boards.detail.card.create}">New Ticket</p>
+        </div>
+        <form id="cardForm" th:action="@{/apps/boards/{id}/cards(id=${board.id})}" method="post"
+              class="flex-1 min-h-0 overflow-y-auto kanban-scroll px-6 pb-6 flex flex-col gap-4">
+
+            <!-- Title -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.title}">Title</label>
+                <input id="cardTitle" name="title" type="text" required maxlength="255"
+                       th:placeholder="#{boards.detail.card.field.title.placeholder}"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+
+            <!-- Description -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400" th:text="#{boards.ticket.field.description}">Description</label>
+                <textarea name="descriptionLong" rows="3" maxlength="10000"
+                          th:placeholder="#{boards.detail.card.field.desc_long.placeholder}"
+                          class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all resize-none"></textarea>
+            </div>
+
+            <!-- Priority + Column row -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.priority}">Priority</label>
+                    <select name="priority"
+                            class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                        <option value="" th:text="#{boards.detail.card.field.priority.none}">No Priority</option>
+                        <option th:each="p : ${priorities}" th:value="${p.name()}"
+                                th:text="#{|boards.priority.${#strings.toLowerCase(p.name())}|}">Priority</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.column}">Column</label>
+                    <select id="cardColumnId" name="columnId"
+                            class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                        <option th:each="col : ${columns}" th:value="${col.id}" th:text="${col.name}">Column</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Deadline -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.deadline}">Deadline</label>
+                <input name="deadline" type="date"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all [color-scheme:dark]"/>
+            </div>
+
+            <!-- Color picker -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.color}">Color</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="color" value="" class="hidden peer" checked>
+                        <span class="w-5 h-5 rounded-full border-2 border-zinc-600 peer-checked:border-violet-400 peer-checked:ring-2 peer-checked:ring-violet-400/30 transition-all bg-zinc-800"></span>
+                        <span class="text-xs text-zinc-500" th:text="#{boards.detail.card.field.color.none}">None</span>
+                    </label>
+                    <label th:each="c : ${@cardColorUtils.colors()}" class="cursor-pointer">
+                        <input type="radio" name="color" th:value="${c}" class="hidden peer">
+                        <span th:style="'background:' + ${@cardColorUtils.hex(c)}"
+                              class="block w-5 h-5 rounded-full border-2 border-transparent peer-checked:border-white peer-checked:ring-2 peer-checked:ring-white/30 transition-all hover:scale-110"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Assignees -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.assignees}">Assignees</label>
+                <div id="assigneeChips" class="flex flex-wrap gap-1.5"></div>
+                <div id="assigneeSearchWrapper" class="relative">
+                    <div class="flex items-center gap-2 bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/>
+                        </svg>
+                        <input type="text" id="assigneeSearch"
+                               th:placeholder="#{boards.detail.card.field.assignees.placeholder}"
+                               autocomplete="off"
+                               oninput="onUserInput('assignee', this.value)"
+                               class="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none"/>
+                    </div>
+                    <div id="assigneeDropdown"
+                         class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto kanban-scroll"></div>
+                </div>
+            </div>
+
+            <!-- Watchers -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400" th:text="#{boards.detail.card.field.watchers}">Watchers</label>
+                <div id="watcherChips" class="flex flex-wrap gap-1.5"></div>
+                <div id="watcherSearchWrapper" class="relative">
+                    <div class="flex items-center gap-2 bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/>
+                        </svg>
+                        <input type="text" id="watcherSearch"
+                               th:placeholder="#{boards.detail.card.field.watchers.placeholder}"
+                               autocomplete="off"
+                               oninput="onUserInput('watcher', this.value)"
+                               class="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none"/>
+                    </div>
+                    <div id="watcherDropdown"
+                         class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto kanban-scroll"></div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 justify-end pt-1">
+                <button type="button" onclick="hideCardModal()"
+                        class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                        th:text="#{boards.detail.card.button.cancel}">Cancel</button>
+                <button type="submit"
+                        class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40"
+                        th:text="#{boards.detail.card.button.save}">Create Ticket</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Card delete confirmation modal ────────────────────────────────── -->
+<div id="cardDeleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideCardDeleteModal()"></div>
+    <div class="relative bg-zinc-900 border border-zinc-800 rounded-2xl max-w-sm w-full shadow-2xl p-6 flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                </div>
+                <div class="flex flex-col gap-0.5 min-w-0">
+                    <p class="text-zinc-100 text-sm font-medium" th:text="#{boards.ticket.delete.confirm}">Delete this ticket?</p>
+                    <p id="cardDeleteTitle" class="text-zinc-500 text-xs truncate"></p>
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="hideCardDeleteModal()"
+                    class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                    th:text="#{boards.ticket.button.cancel}">Cancel</button>
+            <form id="cardDeleteForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit"
+                        class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-red-950/40"
+                        th:text="#{boards.ticket.button.delete}">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── Drag-and-drop error toast ─────────────────────────────────────── -->
+<div id="dndToast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-900/90 border border-red-700/60 text-red-200 text-sm px-4 py-2.5 rounded-xl shadow-xl backdrop-blur-sm"
+     th:data-msg="#{boards.ticket.dnd.error}"></div>
+
+<!-- ── Header ────────────────────────────────────────────────────────── -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4 min-w-0">
+        <a href="/apps/boards" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm" th:text="#{boards.nav.back}">Back to Boards</span>
+        </a>
+        <span class="text-zinc-700 shrink-0">|</span>
+        <span class="text-zinc-300 text-sm font-medium truncate" th:text="${board.name}">Board</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+        <button onclick="showNotif()" class="relative text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+            </svg>
+            <span th:if="${unreadCount > 0}"
+                  class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full text-white flex items-center justify-center"
+                  style="font-size:9px;font-family:'JetBrains Mono',monospace;"
+                  th:text="${unreadCount > 9 ? '9+' : unreadCount}"></span>
+        </button>
+        <button th:if="${isOwner}" onclick="showSettings()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1.5 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </button>
+        <div class="w-px h-4 bg-zinc-800 mx-1"></div>
+        <span class="text-xs text-zinc-500 hidden sm:block" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" th:title="#{action.sign_out}" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- ── Description sub-bar ───────────────────────────────────────────── -->
+<div th:if="${board.description != null and !board.description.isEmpty()}"
+     class="border-b border-zinc-800/40 px-6 py-2 shrink-0" style="background:#0c0c0f;">
+    <p class="text-zinc-500 text-xs truncate" th:text="${board.description}"></p>
+</div>
+
+<!-- ── Card error flash ───────────────────────────────────────────────── -->
+<div th:if="${cardError}"
+     class="shrink-0 px-6 py-2.5 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between gap-3">
+    <p class="text-red-400 text-sm" th:text="${cardError}"></p>
+    <button type="button" onclick="this.parentElement.remove()" class="text-red-400/60 hover:text-red-400 transition-colors p-0.5 rounded shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+
+<!-- ── Main: columns area ────────────────────────────────────────────── -->
+<main class="flex-1 min-h-0 overflow-x-auto">
+
+    <!-- Empty state: no columns -->
+    <div th:if="${#lists.isEmpty(columns)}"
+         class="h-full flex flex-col items-center justify-center gap-3 p-12">
+        <div class="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700/40 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+            </svg>
+        </div>
+        <p class="text-zinc-400 text-sm font-medium" th:text="#{boards.empty_hint}">No columns configured yet.</p>
+    </div>
+
+    <!-- Columns -->
+    <div th:unless="${#lists.isEmpty(columns)}"
+         th:style="'grid-template-columns: repeat(' + ${#lists.size(columns)} + ', minmax(260px, 1fr));'"
+         class="grid auto-rows-fr gap-4 px-6 py-4 min-w-full h-full">
+
+        <div th:each="col : ${columns}"
+             th:data-column-id="${col.id}"
+             class="kanban-column flex flex-col bg-zinc-900/60 border border-zinc-800/60 rounded-2xl h-full"
+             ondragover="event.preventDefault(); this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             th:ondrop="|handleDrop(event, ${col.id})|">
+
+            <!-- Column header -->
+            <div class="px-4 py-3 border-b border-zinc-800/60 flex items-center justify-between shrink-0">
+                <p class="text-zinc-200 text-sm font-medium truncate" th:text="${col.name}">Column</p>
+                <span class="text-zinc-600 text-xs shrink-0 ml-2"
+                      style="font-family:'JetBrains Mono',monospace;"
+                      th:text="${cardsByColumn[col.id].size()}">0</span>
+            </div>
+
+            <!-- Cards -->
+            <div class="card-list flex-1 min-h-0 overflow-y-auto kanban-scroll p-3 flex flex-col gap-2">
+
+                <div th:if="${#lists.isEmpty(cardsByColumn[col.id])}"
+                     class="drop-placeholder flex items-center justify-center py-6">
+                    <p class="text-zinc-700 text-xs" th:text="#{boards.column.empty}">No tickets</p>
+                </div>
+
+                <!-- Card tile -->
+                <div class="group relative rounded-xl"
+                     th:each="card : ${cardsByColumn[col.id]}"
+                     th:attr="data-card-id=${card.id},data-card-title=${card.title}"
+                     draggable="true"
+                     th:ondragstart="|startDrag(event, ${card.id}, ${col.id})|"
+                     ondragend="endDrag(event)">
+
+                    <!-- Trash icon (appears on hover) -->
+                    <button type="button"
+                            onclick="showCardDeleteModal(this, event)"
+                            class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center rounded bg-zinc-800 hover:bg-red-900/60 border border-zinc-700/40 hover:border-red-600/40 text-zinc-500 hover:text-red-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                    </button>
+
+                    <!-- Card link -->
+                    <a th:href="@{/apps/boards/{boardId}/cards/{cardId}(boardId=${board.id},cardId=${card.id})}"
+                       draggable="false"
+                       class="block bg-zinc-900 border border-zinc-800/60 rounded-xl overflow-hidden hover:border-zinc-700 hover:shadow-lg hover:shadow-black/30 transition-all duration-150 cursor-pointer">
+
+                        <!-- Color accent bar (3 px, only when a colour is set) -->
+                        <div th:if="${@cardColorUtils.hex(card.color) != null}"
+                             th:style="'background:' + ${@cardColorUtils.hex(card.color)}"
+                             class="h-[3px] w-full"></div>
+
+                        <div class="px-3 pt-2.5 pb-3 flex flex-col gap-2">
+
+                            <!-- Priority label (Trello-style coloured pill, top of card) -->
+                            <div th:if="${card.priority != null}">
+                                <span th:class="'inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ' +
+                                    (${card.priority.name() == 'CRITICAL'} ? 'bg-red-500/15 text-red-400' :
+                                    (${card.priority.name() == 'HIGH'}     ? 'bg-orange-500/15 text-orange-400' :
+                                    (${card.priority.name() == 'MEDIUM'}   ? 'bg-sky-500/15 text-sky-400' :
+                                                                              'bg-zinc-800 text-zinc-500')))"
+                                      style="font-family:'JetBrains Mono',monospace;">
+                                    <span th:class="'w-1.5 h-1.5 rounded-full shrink-0 ' +
+                                        (${card.priority.name() == 'CRITICAL'} ? 'bg-red-400' :
+                                        (${card.priority.name() == 'HIGH'}     ? 'bg-orange-400' :
+                                        (${card.priority.name() == 'MEDIUM'}   ? 'bg-sky-400' : 'bg-zinc-600')))"></span>
+                                    <span th:text="#{|boards.priority.${#strings.toLowerCase(card.priority.name())}|}"></span>
+                                </span>
+                            </div>
+
+                            <!-- Title -->
+                            <p class="text-zinc-100 text-sm leading-snug pr-5" th:text="${card.title}"></p>
+
+                            <!-- Description preview (2-line clamp) -->
+                            <p th:if="${card.descriptionLong != null and !card.descriptionLong.isEmpty()}"
+                               class="text-zinc-500 text-xs leading-relaxed line-clamp-2"
+                               th:text="${card.descriptionLong}"></p>
+
+                            <!-- Footer: meta left | assignee avatar right -->
+                            <div class="flex items-center justify-between gap-2 mt-1">
+
+                                <!-- Left: due date · comment count · watcher count -->
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span th:if="${card.deadline != null}"
+                                          class="inline-flex items-center gap-1 text-[10px] text-amber-500/80"
+                                          style="font-family:'JetBrains Mono',monospace;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/>
+                                        </svg>
+                                        <span th:text="${@dateDisplayUtils.format(card.deadline, userZoneId, 'MMM d')}"></span>
+                                    </span>
+                                    <span th:if="${commentCountByCard[card.id] != null and commentCountByCard[card.id] > 0}"
+                                          class="inline-flex items-center gap-0.5 text-[10px] text-zinc-600"
+                                          style="font-family:'JetBrains Mono',monospace;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                                        </svg>
+                                        <span th:text="${commentCountByCard[card.id]}"></span>
+                                    </span>
+                                    <span th:if="${watcherCountByCard[card.id] != null and watcherCountByCard[card.id] > 0}"
+                                          class="inline-flex items-center gap-0.5 text-[10px] text-zinc-600"
+                                          style="font-family:'JetBrains Mono',monospace;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <span th:text="${watcherCountByCard[card.id]}"></span>
+                                    </span>
+                                </div>
+
+                                <!-- Right: assignee avatar -->
+                                <div th:if="${firstAssigneeByCard[card.id] != null}"
+                                     class="w-6 h-6 rounded-full bg-violet-600/30 border border-violet-500/30 flex items-center justify-center shrink-0"
+                                     style="font-size:9px;font-family:'JetBrains Mono',monospace;"
+                                     th:title="${firstAssigneeByCard[card.id].firstName != null and !firstAssigneeByCard[card.id].firstName.isEmpty() ? firstAssigneeByCard[card.id].firstName : firstAssigneeByCard[card.id].username}">
+                                    <span class="text-violet-300 font-medium"
+                                          th:text="${#strings.substring(firstAssigneeByCard[card.id].username, 0, 1).toUpperCase()}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Add ticket button -->
+            <div class="p-3 border-t border-zinc-800/40 shrink-0">
+                <button th:onclick="|showCardModal(${col.id})|"
+                        class="w-full flex items-center gap-1.5 text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/50 text-xs py-1.5 px-2 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    <span th:text="#{boards.detail.card.create}">New Ticket</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    const BOARD_ID = /*[[${board.id}]]*/ 0;
+    const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]').content;
+    const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]').content;
+    const DND_ERROR_MSG = document.getElementById('dndToast').dataset.msg;
+
+    // ── Notifications panel ─────────────────────────────────────────────
+    function showNotif() {
+        document.getElementById('notifOverlay').classList.remove('hidden');
+        document.getElementById('notifPanel').classList.remove('hidden');
+    }
+    function hideNotif() {
+        document.getElementById('notifOverlay').classList.add('hidden');
+        document.getElementById('notifPanel').classList.add('hidden');
+    }
+
+    // ── Settings panel ──────────────────────────────────────────────────
+    function showSettings() {
+        const overlay = document.getElementById('settingsOverlay');
+        const panel   = document.getElementById('settingsPanel');
+        if (overlay) overlay.classList.remove('hidden');
+        if (panel)   panel.classList.remove('hidden');
+    }
+    function hideSettings() {
+        const overlay = document.getElementById('settingsOverlay');
+        const panel   = document.getElementById('settingsPanel');
+        if (overlay) overlay.classList.add('hidden');
+        if (panel)   panel.classList.add('hidden');
+    }
+
+    // ── Card modal ──────────────────────────────────────────────────────
+    function showCardModal(columnId) {
+        const sel = document.getElementById('cardColumnId');
+        if (sel) sel.value = columnId;
+        document.getElementById('cardModal').classList.remove('hidden');
+        setTimeout(() => {
+            const t = document.getElementById('cardTitle');
+            if (t) t.focus();
+        }, 50);
+    }
+    function hideCardModal() {
+        document.getElementById('cardModal').classList.add('hidden');
+        document.getElementById('cardForm').reset();
+        clearUserPicker('assignee');
+        clearUserPicker('watcher');
+    }
+
+    // ── Keyboard shortcuts ──────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            hideCardModal(); hideNotif(); hideSettings(); hideCardDeleteModal();
+            closeDropdown('assignee'); closeDropdown('watcher');
+        }
+    });
+
+    // ── Drag-and-drop ───────────────────────────────────────────────────
+    let dragCardId   = null;
+    let dragOrigColId = null;
+    let dragCardEl   = null;
+    let dragOrigColEl = null;
+
+    function startDrag(event, cardId, columnId) {
+        dragCardId    = cardId;
+        dragCardEl    = event.currentTarget;
+        dragOrigColEl = dragCardEl.closest('.kanban-column').querySelector('.card-list');
+        // Read from DOM so repeated moves within a session use the actual current column
+        dragOrigColId = +dragCardEl.closest('.kanban-column').dataset.columnId;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', cardId);
+        setTimeout(() => dragCardEl && dragCardEl.classList.add('card-dragging'), 0);
+    }
+
+    function endDrag(event) {
+        event.currentTarget.classList.remove('card-dragging');
+        document.querySelectorAll('.kanban-column').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    async function handleDrop(event, newColumnId) {
+        event.preventDefault();
+        const col = event.currentTarget;
+        col.classList.remove('drag-over');
+
+        if (!dragCardId || dragOrigColId === newColumnId) return;
+
+        const cardEl = dragCardEl;
+        const newList = col.querySelector('.card-list');
+
+        // Optimistically move the card in the DOM
+        if (newList && cardEl) {
+            const placeholder = newList.querySelector('.drop-placeholder');
+            if (placeholder) placeholder.remove();
+            newList.appendChild(cardEl);
+        }
+
+        const savedCardId   = dragCardId;
+        const savedOrigColEl = dragOrigColEl;
+        const savedCardEl   = cardEl;
+        dragCardId = null; dragOrigColId = null; dragCardEl = null; dragOrigColEl = null;
+
+        try {
+            const resp = await fetch(`/apps/boards/${BOARD_ID}/cards/${savedCardId}/move`, {
+                method:  'POST',
+                headers: { [CSRF_HEADER]: CSRF_TOKEN, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body:    `columnId=${newColumnId}`
+            });
+            if (!resp.ok) throw new Error('move failed');
+        } catch (e) {
+            // Revert: move card back to original column
+            if (savedOrigColEl && savedCardEl) {
+                const ph = savedOrigColEl.querySelector('.drop-placeholder');
+                if (ph) ph.remove();
+                savedOrigColEl.appendChild(savedCardEl);
+            }
+            showDndError();
+        }
+    }
+
+    function showDndError() {
+        const toast = document.getElementById('dndToast');
+        toast.textContent = DND_ERROR_MSG;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // ── Card delete modal ───────────────────────────────────────────────
+    function showCardDeleteModal(btn, event) {
+        event.stopPropagation();
+        event.preventDefault();
+        const wrapper = btn.closest('[data-card-id]');
+        const cardId    = wrapper.dataset.cardId;
+        document.getElementById('cardDeleteTitle').textContent = wrapper.dataset.cardTitle;
+        document.getElementById('cardDeleteForm').action = '/apps/boards/' + BOARD_ID + '/cards/' + cardId + '/delete';
+        document.getElementById('cardDeleteModal').classList.remove('hidden');
+    }
+    function hideCardDeleteModal() {
+        document.getElementById('cardDeleteModal').classList.add('hidden');
+    }
+
+    // ── User autocomplete (assignees / watchers) ────────────────────────
+    const _debounceTimers = {};
+
+    function onUserInput(type, value) {
+        clearTimeout(_debounceTimers[type]);
+        _debounceTimers[type] = setTimeout(() => fetchUserResults(type, value.trim()), 250);
+    }
+
+    async function fetchUserResults(type, q) {
+        if (q.length < 1) { closeDropdown(type); return; }
+        try {
+            const resp = await fetch(`/apps/boards/${BOARD_ID}/users/search?q=${encodeURIComponent(q)}`);
+            if (!resp.ok) return;
+            const users = await resp.json();
+            const picked = getPickedIds(type);
+            const filtered = users.filter(u => !picked.has(u.id));
+            if (!filtered.length) { closeDropdown(type); return; }
+
+            // Portal appended to body — escapes overflow-y-auto clipping on the modal form
+            let dd = document.getElementById(type + 'DropdownPortal');
+            if (!dd) {
+                dd = document.createElement('div');
+                dd.id = type + 'DropdownPortal';
+                document.body.appendChild(dd);
+            }
+            const input = document.getElementById(type + 'Search');
+            const rect = input.getBoundingClientRect();
+            Object.assign(dd.style, {
+                display: 'block', position: 'fixed', zIndex: '9999',
+                top: (rect.bottom + 4) + 'px', left: rect.left + 'px', width: rect.width + 'px',
+                maxHeight: '13rem', overflowY: 'auto', scrollbarWidth: 'thin',
+                background: '#18181b', border: '1px solid #3f3f46',
+                borderRadius: '0.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,.8)'
+            });
+            dd.innerHTML = filtered.map(u =>
+                `<button type="button" onclick="pickUser('${type}', ${u.id}, '${escHtml(u.displayName)}')"
+                    style="display:block;width:100%;text-align:left;padding:8px 12px;font-size:14px;color:#e4e4e7;background:transparent;border:none;cursor:pointer;"
+                    onmouseover="this.style.background='#27272a'" onmouseout="this.style.background='transparent'">${escHtml(u.displayName)}</button>`
+            ).join('');
+        } catch (_) {}
+    }
+
+    function pickUser(type, id, displayName) {
+        const chips = document.getElementById(type + 'Chips');
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1.5 bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs px-2.5 py-1 rounded-full';
+        chip.dataset.userId = id;
+        chip.innerHTML = `${escHtml(displayName)}<button type="button" onclick="removeUser('${type}', this)" class="text-violet-400 hover:text-violet-200 transition-colors leading-none ml-1">&times;</button>`;
+        chips.appendChild(chip);
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = type + 'Ids';
+        hidden.value = id;
+        hidden.dataset.userId = id;
+        chips.appendChild(hidden);
+        document.getElementById(type + 'Search').value = '';
+        closeDropdown(type);
+    }
+
+    function removeUser(type, btn) {
+        const chip = btn.closest('[data-user-id]');
+        const userId = chip.dataset.userId;
+        const chips = document.getElementById(type + 'Chips');
+        chip.remove();
+        const hidden = chips.querySelector(`input[data-user-id="${userId}"]`);
+        if (hidden) hidden.remove();
+    }
+
+    function clearUserPicker(type) {
+        const chips = document.getElementById(type + 'Chips');
+        if (chips) chips.innerHTML = '';
+        const search = document.getElementById(type + 'Search');
+        if (search) search.value = '';
+        closeDropdown(type);
+    }
+
+    function closeDropdown(type) {
+        const portal = document.getElementById(type + 'DropdownPortal');
+        if (portal) portal.style.display = 'none';
+    }
+
+    function getPickedIds(type) {
+        const chips = document.getElementById(type + 'Chips');
+        return new Set(Array.from(chips.querySelectorAll('[data-user-id]'))
+            .map(el => +el.dataset.userId));
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.addEventListener('click', e => {
+        ['assignee', 'watcher'].forEach(type => {
+            const wrapper = document.getElementById(type + 'SearchWrapper');
+            const portal = document.getElementById(type + 'DropdownPortal');
+            if (wrapper && !wrapper.contains(e.target) && !(portal && portal.contains(e.target))) {
+                closeDropdown(type);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

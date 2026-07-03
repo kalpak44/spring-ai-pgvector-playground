@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{boards.new.title}">AI Assistant — New Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4">
+        <a href="/apps/boards" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm" th:text="#{boards.new.back}">Back to Boards</span>
+        </a>
+        <span class="text-zinc-700">|</span>
+        <span class="text-zinc-300 text-sm font-medium" th:text="#{boards.new.heading}">New Board</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <span class="text-xs text-zinc-500" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" th:title="#{action.sign_out}" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-xl">
+
+        <!-- Server-side error -->
+        <div th:if="${error}"
+             class="mb-5 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+             th:text="${error}"></div>
+
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
+
+            <p class="text-zinc-100 font-medium mb-5" th:text="#{boards.new.heading}">New Board</p>
+
+            <form id="boardForm" th:action="@{/apps/boards/new}" method="post" class="flex flex-col gap-4">
+
+                <!-- Title -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{boards.new.field.title}">Title</label>
+                    <input name="title" type="text" required maxlength="128"
+                           th:value="${formTitle}"
+                           th:placeholder="#{boards.new.field.title.placeholder}"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+
+                <!-- Description -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400" th:text="#{boards.new.field.description}">Description</label>
+                    <textarea name="description" rows="2"
+                              th:placeholder="#{boards.new.field.description.placeholder}"
+                              class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all resize-none"
+                              th:text="${formDescription}"></textarea>
+                </div>
+
+                <!-- Columns -->
+                <div class="border-t border-zinc-800/60 pt-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-zinc-400" th:text="#{boards.new.columns.heading}">Columns</p>
+                        <span class="text-xs text-zinc-600" th:text="#{boards.new.columns.recommended}">Recommended</span>
+                    </div>
+
+                    <!-- Column chips -->
+                    <div id="column-chips" class="flex flex-wrap gap-2 min-h-8"></div>
+
+                    <!-- Add column select -->
+                    <select id="column-select" onchange="addColumnFromSelect(this)"
+                            class="self-start bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-500 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                        <option value="" th:text="#{boards.new.columns.add}">Add column…</option>
+                        <option th:each="name : ${allColumnNames}"
+                                th:value="${name}"
+                                th:text="${name}"
+                                data-col="true">Column</option>
+                    </select>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-center gap-3 pt-1">
+                    <a href="/apps/boards"
+                       class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                       th:text="#{boards.new.button.cancel}">Cancel</a>
+                    <button type="submit"
+                            class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40"
+                            th:text="#{boards.new.button.create}">Create Board</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script th:inline="javascript">
+    let cols = /*[[${selectedColumns}]]*/ [];
+
+    const REMOVE_LABEL = /*[[#{boards.new.columns.remove}]]*/ 'Remove';
+
+    function renderChips() {
+        const container = document.getElementById('column-chips');
+        if (cols.length === 0) {
+            container.innerHTML = '';
+            syncSelect();
+            return;
+        }
+        container.innerHTML = cols.map((col, i) =>
+            `<span class="inline-flex items-center gap-1.5 bg-zinc-800 border border-zinc-700/50 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300">
+                ${esc(col)}
+                <button type="button"
+                        onclick="removeCol(${i})"
+                        title="${esc(REMOVE_LABEL)}"
+                        class="text-zinc-500 hover:text-red-400 transition-colors shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </span>`
+        ).join('');
+        syncSelect();
+    }
+
+    function removeCol(i) {
+        cols.splice(i, 1);
+        renderChips();
+    }
+
+    function addColumnFromSelect(sel) {
+        const val = sel.value;
+        if (val && !cols.includes(val)) {
+            cols.push(val);
+            renderChips();
+        }
+        sel.value = '';
+    }
+
+    function syncSelect() {
+        document.querySelectorAll('#column-select option[data-col]').forEach(opt => {
+            opt.hidden = cols.includes(opt.value);
+        });
+    }
+
+    document.getElementById('boardForm').addEventListener('submit', function() {
+        document.querySelectorAll('.col-hidden').forEach(el => el.remove());
+        cols.forEach(col => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'columns';
+            inp.className = 'col-hidden';
+            inp.value = col;
+            this.appendChild(inp);
+        });
+    });
+
+    function esc(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
+    }
+
+    renderChips();
+</script>
+
+</body>
+</html>

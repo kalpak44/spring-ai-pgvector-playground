@@ -7,27 +7,31 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 @Entity
-@Table(name = "ticket_comment")
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
-public class TicketComment {
+@Table(name = "board")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Board {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ticket_id", nullable = false)
-    private Ticket ticket;
+    @Column(nullable = false)
+    private String name;
 
-    @Column(nullable = false, length = 64)
-    private String authorUsername;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
-    private String authorDisplayName;
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String body;
-
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist

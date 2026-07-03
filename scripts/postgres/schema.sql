@@ -92,3 +92,145 @@ CREATE TABLE IF NOT EXISTS user_google_tokens (
     granted_scopes TEXT,
     connected_at   TIMESTAMP    DEFAULT NOW()
 );
+
+
+-- =================================================
+-- Board Module
+-- =================================================
+
+CREATE TABLE IF NOT EXISTS board (
+    id          BIGSERIAL    PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    description TEXT,
+    owner_id    BIGINT       NOT NULL REFERENCES users(id),
+    created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_board_owner_id
+    ON board(owner_id);
+
+
+CREATE TABLE IF NOT EXISTS board_member (
+    id        BIGSERIAL   PRIMARY KEY,
+    board_id  BIGINT      NOT NULL REFERENCES board(id),
+    user_id   BIGINT      NOT NULL REFERENCES users(id),
+    role      VARCHAR(16) NOT NULL DEFAULT 'MEMBER'
+                  CONSTRAINT board_member_role_check
+                      CHECK (role IN ('OWNER', 'MEMBER', 'VIEWER')),
+    joined_at TIMESTAMP   NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT board_member_unique UNIQUE (board_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_board_member_board_id ON board_member(board_id);
+CREATE INDEX IF NOT EXISTS idx_board_member_user_id  ON board_member(user_id);
+
+
+CREATE TABLE IF NOT EXISTS board_column (
+    id         BIGSERIAL    PRIMARY KEY,
+    board_id   BIGINT       NOT NULL REFERENCES board(id),
+    name       VARCHAR(128) NOT NULL,
+    position   INTEGER      NOT NULL,
+    created_at TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_board_column_board_id
+    ON board_column(board_id);
+
+
+CREATE TABLE IF NOT EXISTS card (
+    id                BIGSERIAL    PRIMARY KEY,
+    column_id         BIGINT       NOT NULL REFERENCES board_column(id),
+    title             VARCHAR(255) NOT NULL,
+    description_short VARCHAR(512),
+    description_long  TEXT,
+    position          INTEGER      NOT NULL,
+    priority          VARCHAR(16)
+                          CONSTRAINT card_priority_check
+                              CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    color             VARCHAR(32),
+    deadline          TIMESTAMP,
+    created_by        BIGINT       REFERENCES users(id),
+    created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_card_column_id
+    ON card(column_id);
+
+
+CREATE TABLE IF NOT EXISTS card_assignment (
+    id          BIGSERIAL PRIMARY KEY,
+    card_id     BIGINT    NOT NULL REFERENCES card(id),
+    user_id     BIGINT    NOT NULL REFERENCES users(id),
+    assigned_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT card_assignment_unique UNIQUE (card_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_card_assignment_card_id
+    ON card_assignment(card_id);
+
+
+CREATE TABLE IF NOT EXISTS card_watcher (
+    id            BIGSERIAL PRIMARY KEY,
+    card_id       BIGINT    NOT NULL REFERENCES card(id),
+    user_id       BIGINT    NOT NULL REFERENCES users(id),
+    subscribed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT card_watcher_unique UNIQUE (card_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_card_watcher_card_id
+    ON card_watcher(card_id);
+
+
+CREATE TABLE IF NOT EXISTS card_comment (
+    id         BIGSERIAL PRIMARY KEY,
+    card_id    BIGINT    NOT NULL REFERENCES card(id),
+    author_id  BIGINT    REFERENCES users(id),
+    content    TEXT      NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_card_comment_card_id
+    ON card_comment(card_id);
+
+
+CREATE TABLE IF NOT EXISTS board_notification (
+    id          BIGSERIAL   PRIMARY KEY,
+    user_id     BIGINT      NOT NULL REFERENCES users(id),
+    event_type  VARCHAR(64) NOT NULL,
+    entity_type VARCHAR(32) NOT NULL
+                    CONSTRAINT board_notification_entity_type_check
+                        CHECK (entity_type IN ('BOARD', 'CARD', 'COMMENT')),
+    entity_id   BIGINT      NOT NULL,
+    payload     JSONB,
+    read        BOOLEAN     NOT NULL DEFAULT FALSE,
+    created_at  TIMESTAMP   NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_board_notification_user_id
+    ON board_notification(user_id);
+CREATE INDEX IF NOT EXISTS idx_board_notification_user_read
+    ON board_notification(user_id, read);
+
+
+CREATE TABLE IF NOT EXISTS board_activity (
+    id          BIGSERIAL   PRIMARY KEY,
+    board_id    BIGINT      NOT NULL REFERENCES board(id),
+    actor_id    BIGINT      REFERENCES users(id),
+    event_type  VARCHAR(64) NOT NULL,
+    entity_type VARCHAR(32) NOT NULL
+                    CONSTRAINT board_activity_entity_type_check
+                        CHECK (entity_type IN ('BOARD', 'COLUMN', 'CARD', 'COMMENT')),
+    entity_id   BIGINT      NOT NULL,
+    payload     JSONB,
+    created_at  TIMESTAMP   NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_board_activity_board_id
+    ON board_activity(board_id);

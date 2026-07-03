@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{boards.title}">AI Assistant — Boards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .anim-empty { animation: fadeInUp 0.35s ease both; }
+    </style>
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4">
+        <a href="/apps" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm" th:text="#{nav.back_to_apps}">Back to Apps</span>
+        </a>
+        <span class="text-zinc-700">|</span>
+        <span class="text-zinc-300 text-sm font-medium" th:text="#{boards.heading}">Boards</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <span class="text-xs text-zinc-500" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" th:title="#{action.sign_out}" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-5xl flex flex-col gap-5">
+
+        <!-- Heading row -->
+        <div class="flex items-center justify-between">
+            <p class="text-zinc-100 font-medium" th:text="#{boards.heading}">Boards</p>
+            <a href="/apps/boards/new"
+               class="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-md shadow-violet-950/40">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                <span th:text="#{boards.list.create_button}">New Board</span>
+            </a>
+        </div>
+
+        <!-- Board grid -->
+        <div id="board-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <a th:each="board : ${boards}"
+               th:href="@{/apps/boards/{id}(id=${board.id})}"
+               class="group relative bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5 flex flex-col gap-3 hover:border-violet-500/40 hover:bg-zinc-800/40 transition-all">
+                <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center group-hover:border-violet-500/30 group-hover:bg-violet-600/10 transition-all shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400 group-hover:text-violet-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 flex flex-col gap-1 min-w-0">
+                    <p class="text-zinc-100 font-medium text-sm truncate" th:text="${board.name}">Board name</p>
+                    <p th:if="${board.description != null and !board.description.isEmpty()}"
+                       class="text-zinc-500 text-xs leading-relaxed line-clamp-2"
+                       th:text="${board.description}"></p>
+                </div>
+                <div class="flex items-center justify-between mt-auto pt-2 border-t border-zinc-800/60 gap-2">
+                    <span class="text-zinc-600 text-xs truncate"
+                          th:text="${ownerNames[board.ownerId]}"></span>
+                    <span class="text-zinc-600 text-xs shrink-0"
+                          style="font-family:'JetBrains Mono',monospace;"
+                          th:text="${@dateDisplayUtils.format(board.createdAt, userZoneId, 'MMM d, yyyy')}"></span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 transition-colors absolute bottom-4 right-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                </svg>
+            </a>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(boards)}"
+             class="anim-empty flex flex-col items-center gap-3 py-20">
+            <div class="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700/40 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                </svg>
+            </div>
+            <p class="text-zinc-400 text-sm font-medium" th:text="#{boards.list.empty.title}">No boards yet</p>
+            <p class="text-zinc-600 text-xs" th:text="#{boards.list.empty.desc}">You don't have access to any boards.</p>
+        </div>
+
+        <!-- Loading more indicator -->
+        <div id="loading-more" class="hidden">
+            <div class="flex items-center justify-center gap-2 py-4">
+                <svg class="w-4 h-4 text-zinc-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-zinc-500 text-xs" th:text="#{boards.list.loading_more}">Loading more…</span>
+            </div>
+        </div>
+
+        <!-- Error state -->
+        <div id="fetch-error" class="hidden">
+            <div class="flex flex-col items-center gap-3 py-8">
+                <p class="text-zinc-400 text-sm font-medium" th:text="#{boards.list.error.title}">Could not load boards</p>
+                <p class="text-zinc-600 text-xs" th:text="#{boards.list.error.desc}">Something went wrong. Please try again.</p>
+                <button onclick="retryLoad()"
+                        class="mt-1 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 text-zinc-400 hover:text-zinc-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                        th:text="#{boards.list.error.retry}">Retry</button>
+            </div>
+        </div>
+
+        <!-- End of list -->
+        <div id="end-of-list" class="hidden">
+            <div class="flex items-center justify-center gap-3 py-4">
+                <span class="w-8 h-px bg-zinc-800"></span>
+                <span class="text-zinc-700 text-xs" th:text="#{boards.list.end}">All boards loaded</span>
+                <span class="w-8 h-px bg-zinc-800"></span>
+            </div>
+        </div>
+
+        <!-- Intersection sentinel -->
+        <div id="sentinel" class="h-1"></div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    let page = 1;
+    let hasMore = /*[[${hasMore}]]*/ false;
+    let loading = false;
+
+    const grid = document.getElementById('board-grid');
+    const loadingMore = document.getElementById('loading-more');
+    const fetchError = document.getElementById('fetch-error');
+    const endOfList = document.getElementById('end-of-list');
+    const sentinel = document.getElementById('sentinel');
+
+    if (!hasMore && grid.children.length > 0) {
+        endOfList.classList.remove('hidden');
+    }
+
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !loading && hasMore) {
+            loadMore();
+        }
+    }, { rootMargin: '300px' });
+
+    observer.observe(sentinel);
+
+    async function loadMore() {
+        loading = true;
+        loadingMore.classList.remove('hidden');
+        fetchError.classList.add('hidden');
+
+        try {
+            const resp = await fetch(`/apps/boards/fragment?page=${page}`);
+            if (!resp.ok) throw new Error('fetch failed');
+            const data = await resp.json();
+
+            data.boards.forEach(b => {
+                grid.insertAdjacentHTML('beforeend', buildTile(b));
+            });
+
+            page++;
+            hasMore = data.hasMore;
+
+            if (!hasMore) {
+                observer.disconnect();
+                if (grid.children.length > 0) {
+                    endOfList.classList.remove('hidden');
+                }
+            }
+        } catch (e) {
+            fetchError.classList.remove('hidden');
+        } finally {
+            loading = false;
+            loadingMore.classList.add('hidden');
+        }
+    }
+
+    function retryLoad() {
+        fetchError.classList.add('hidden');
+        loadMore();
+    }
+
+    function buildTile(b) {
+        const descHtml = b.description
+            ? `<p class="text-zinc-500 text-xs leading-relaxed line-clamp-2">${esc(b.description)}</p>`
+            : '';
+        return `<a href="/apps/boards/${b.id}"
+            class="group relative bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5 flex flex-col gap-3 hover:border-violet-500/40 hover:bg-zinc-800/40 transition-all">
+            <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center group-hover:border-violet-500/30 group-hover:bg-violet-600/10 transition-all shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400 group-hover:text-violet-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                </svg>
+            </div>
+            <div class="flex-1 flex flex-col gap-1 min-w-0">
+                <p class="text-zinc-100 font-medium text-sm truncate">${esc(b.name)}</p>
+                ${descHtml}
+            </div>
+            <div class="flex items-center justify-between mt-auto pt-2 border-t border-zinc-800/60 gap-2">
+                <span class="text-zinc-600 text-xs truncate">${esc(b.ownerName)}</span>
+                <span class="text-zinc-600 text-xs shrink-0" style="font-family:'JetBrains Mono',monospace;">${esc(b.createdAt)}</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 transition-colors absolute bottom-4 right-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+            </svg>
+        </a>`;
+    }
+
+    function esc(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
+    }
+</script>
+
+</body>
+</html>
