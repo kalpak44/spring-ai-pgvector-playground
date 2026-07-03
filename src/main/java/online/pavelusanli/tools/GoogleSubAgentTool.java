@@ -5,14 +5,15 @@ import online.pavelusanli.services.GoogleSubAgentService;
 import org.springframework.ai.tool.annotation.Tool;
 
 /**
- * Per-request tool that routes Google-related tasks to a dedicated sub-agent.
- * The sub-agent owns the MCP client lifecycle and returns a compressed result.
+ * Per-request tool that routes Google-related tasks to a dedicated subagent.
+ * The subagent owns the MCP client lifecycle and returns a compressed result.
  */
 @RequiredArgsConstructor
 public class GoogleSubAgentTool {
 
     private final Long userId;
     private final GoogleSubAgentService googleSubAgentService;
+    private final String timezone;
 
     @Tool(description = """
             Delegates a task to the Google services sub-agent (Gmail, Google Calendar).
@@ -23,6 +24,6 @@ public class GoogleSubAgentTool {
             The sub-agent executes the task autonomously and returns a compressed summary.
             """)
     public String executeGoogleTask(String taskDescription) {
-        return googleSubAgentService.execute(userId, taskDescription);
+        return googleSubAgentService.execute(userId, taskDescription, timezone);
     }
 }

@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS users (
                       CONSTRAINT users_role_check
                           CHECK (role IN ('ADMIN', 'USER')),
     enabled       BOOLEAN      NOT NULL DEFAULT TRUE,
+    language      VARCHAR(8)   NOT NULL DEFAULT 'en',
+    timezone      VARCHAR(64)  NOT NULL DEFAULT 'Europe/Sofia',
     created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
 
     CONSTRAINT users_username_unique UNIQUE (username)

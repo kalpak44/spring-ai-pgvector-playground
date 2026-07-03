@@ -4,7 +4,6 @@ import lombok.Builder;
 import online.pavelusanli.model.common.Role;
 import online.pavelusanli.model.entity.ChatEntry;
 import online.pavelusanli.repo.ChatEntryRepository;
-import online.pavelusanli.tools.DateTimeTool;
 import org.jspecify.annotations.NonNull;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -34,15 +33,9 @@ public class AiConfig {
     }
 
     @Bean
-    public DateTimeTool dateTimeTool() {
-        return new DateTimeTool();
-    }
-
-    @Bean
-    public ChatClient chatClient(ChatClient.Builder builder, PostgresChatMemory chatMemory, DateTimeTool dateTimeTool) {
+    public ChatClient chatClient(ChatClient.Builder builder, PostgresChatMemory chatMemory) {
         return builder
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
-                .defaultTools(dateTimeTool)
                 .build();
     }
 

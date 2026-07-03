@@ -261,7 +261,7 @@
                             </span>
                         </td>
                         <td class="px-3 py-3 text-zinc-500 text-xs font-mono"
-                            th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'MMM d, yyyy') : '—'}"></td>
+                            th:text="${@dateDisplayUtils.format(u.createdAt, userZoneId, 'MMM d, yyyy')}"></td>
                         <td class="px-3 py-3 text-right">
                             <button th:if="${u.username != currentUsername}"
                                     type="button"

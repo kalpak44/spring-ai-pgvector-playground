@@ -33,8 +33,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/setup", "/login", "/invite/**", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/settings/users", "/settings/users/**", "/settings/boards", "/settings/boards/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/settings/users/new", "/settings/users/*/delete", "/settings/boards/**").hasRole("ADMIN")
+                .requestMatchers("/settings/users", "/settings/users/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/settings/users/new", "/settings/users/*/delete").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

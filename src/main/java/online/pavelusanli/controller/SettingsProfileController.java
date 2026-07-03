@@ -1,5 +1,7 @@
 package online.pavelusanli.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import online.pavelusanli.model.entity.AppUser;
 import online.pavelusanli.repo.UserRepository;
@@ -13,7 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
+import java.util.List;
 import java.util.Locale;
 
 @Controller
@@ -29,6 +33,38 @@ public class SettingsProfileController {
     private static final String MSG_PASSWORD_SHORT = "settings.profile.error.password_short";
     private static final String MSG_PASSWORD_MISMATCH = "settings.profile.error.password_mismatch";
 
+    static final List<String> SUPPORTED_LANGUAGES = List.of("en", "bg");
+    static final List<String> SUPPORTED_TIMEZONES = List.of(
+            "UTC",
+            "Europe/London",
+            "Europe/Berlin",
+            "Europe/Paris",
+            "Europe/Rome",
+            "Europe/Madrid",
+            "Europe/Warsaw",
+            "Europe/Prague",
+            "Europe/Budapest",
+            "Europe/Bucharest",
+            "Europe/Sofia",
+            "Europe/Athens",
+            "Europe/Helsinki",
+            "Europe/Tallinn",
+            "Europe/Riga",
+            "Europe/Vilnius",
+            "Europe/Kyiv",
+            "Europe/Moscow",
+            "America/New_York",
+            "America/Chicago",
+            "America/Denver",
+            "America/Los_Angeles",
+            "Asia/Dubai",
+            "Asia/Kolkata",
+            "Asia/Bangkok",
+            "Asia/Shanghai",
+            "Asia/Tokyo",
+            "Australia/Sydney"
+    );
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MessageSource messageSource;
@@ -36,6 +72,8 @@ public class SettingsProfileController {
     @GetMapping
     public String profilePage(Model model, Authentication auth) {
         model.addAttribute(ATTR_CURRENT_USER, userRepository.findByUsername(auth.getName()).orElseThrow());
+        model.addAttribute("languages", SUPPORTED_LANGUAGES);
+        model.addAttribute("timezones", SUPPORTED_TIMEZONES);
         return VIEW_PROFILE;
     }
 
@@ -44,9 +82,13 @@ public class SettingsProfileController {
                                 @RequestParam String lastName,
                                 @RequestParam(required = false) String newPassword,
                                 @RequestParam(required = false) String newPasswordConfirm,
+                                @RequestParam String language,
+                                @RequestParam String timezone,
                                 Authentication auth,
                                 RedirectAttributes ra,
-                                Locale locale) {
+                                Locale locale,
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
         AppUser user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
         if (newPassword != null && !newPassword.isBlank()) {
@@ -63,6 +105,16 @@ public class SettingsProfileController {
 
         user.setFirstName(firstName);
         user.setLastName(lastName);
+        if (SUPPORTED_LANGUAGES.contains(language)) {
+            user.setLanguage(language);
+            var localeResolver = RequestContextUtils.getLocaleResolver(request);
+            if (localeResolver != null) {
+                localeResolver.setLocale(request, response, Locale.forLanguageTag(language));
+            }
+        }
+        if (SUPPORTED_TIMEZONES.contains(timezone)) {
+            user.setTimezone(timezone);
+        }
         userRepository.save(user);
 
         return REDIRECT_SETTINGS;

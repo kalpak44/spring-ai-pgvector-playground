@@ -28,6 +28,8 @@ public class SetupController {
     private static final String ATTR_ERROR = "error";
     private static final String MSG_PASSWORD_MISMATCH = "setup.error.password_mismatch";
     private static final String MSG_PASSWORD_SHORT = "setup.error.password_short";
+    private static final String TIMEZONES = "timezones";
+    private static final String EUROPE_SOFIA = "Europe/Sofia";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -42,10 +44,11 @@ public class SetupController {
     }
 
     @GetMapping(PATH_SETUP)
-    public String setupPage() {
+    public String setupPage(Model model) {
         if (userRepository.existsByRole(UserRole.ADMIN)) {
             return REDIRECT_HOME;
         }
+        model.addAttribute(TIMEZONES, SettingsProfileController.SUPPORTED_TIMEZONES);
         return VIEW_SETUP;
     }
 
@@ -55,6 +58,7 @@ public class SetupController {
                           @RequestParam String username,
                           @RequestParam String password,
                           @RequestParam String passwordConfirm,
+                          @RequestParam(defaultValue = EUROPE_SOFIA) String timezone,
                           Model model) {
         if (userRepository.existsByRole(UserRole.ADMIN)) {
             return REDIRECT_HOME;
@@ -62,12 +66,17 @@ public class SetupController {
 
         if (!password.equals(passwordConfirm)) {
             model.addAttribute(ATTR_ERROR, messageSource.getMessage(MSG_PASSWORD_MISMATCH, null, Locale.ENGLISH));
+            model.addAttribute(TIMEZONES, SettingsProfileController.SUPPORTED_TIMEZONES);
             return VIEW_SETUP;
         }
         if (password.length() < 6) {
             model.addAttribute(ATTR_ERROR, messageSource.getMessage(MSG_PASSWORD_SHORT, null, Locale.ENGLISH));
+            model.addAttribute(TIMEZONES, SettingsProfileController.SUPPORTED_TIMEZONES);
             return VIEW_SETUP;
         }
+
+        String safeTimezone = SettingsProfileController.SUPPORTED_TIMEZONES.contains(timezone)
+                ? timezone : EUROPE_SOFIA;
 
         userRepository.save(AppUser.builder()
                 .firstName(firstName)
@@ -76,6 +85,7 @@ public class SetupController {
                 .passwordHash(passwordEncoder.encode(password))
                 .role(UserRole.ADMIN)
                 .enabled(true)
+                .timezone(safeTimezone)
                 .build());
 
         return REDIRECT_LOGIN_DONE;

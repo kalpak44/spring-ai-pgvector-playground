@@ -5,6 +5,7 @@ import lombok.*;
 import online.pavelusanli.model.common.UserRole;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 @Entity
 @Table(name = "users")
@@ -42,11 +43,19 @@ public class AppUser {
     @Builder.Default
     private boolean enabled = true;
 
+    @Column(nullable = false, length = 8)
+    @Builder.Default
+    private String language = "en";
+
+    @Column(nullable = false, length = 64)
+    @Builder.Default
+    private String timezone = "Europe/Sofia";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     void prePersist() {
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 }

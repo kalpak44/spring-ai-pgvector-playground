@@ -67,6 +67,31 @@
                 </div>
 
                 <div class="border-t border-zinc-800/60 pt-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs text-zinc-400" th:text="#{settings.field.language}">Language</label>
+                            <select name="language"
+                                    class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                                <option th:each="lang : ${languages}"
+                                        th:value="${lang}"
+                                        th:selected="${lang == currentUser.language}"
+                                        th:text="${#messages.msg('settings.language.' + lang)}">English</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <label class="text-xs text-zinc-400" th:text="#{settings.field.timezone}">Timezone</label>
+                            <select name="timezone"
+                                    class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                                <option th:each="tz : ${timezones}"
+                                        th:value="${tz}"
+                                        th:selected="${tz == currentUser.timezone}"
+                                        th:text="${tz}">Europe/Sofia</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-zinc-800/60 pt-4">
                     <p class="text-xs text-zinc-500 mb-3" th:text="#{settings.password.hint}">Leave blank to keep current password.</p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="flex flex-col gap-1.5">
