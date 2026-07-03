@@ -18,6 +18,11 @@ public class GoogleMcpService {
     private final GoogleOAuthService googleOAuthService;
     private final McpClientConfig mcpClientConfig;
 
+    /** Lightweight check — no MCP client is created. */
+    public boolean isConnected(Long userId) {
+        return googleOAuthService.hasRequiredScopes(userId);
+    }
+
     /**
      * Builds an MCP tool context for the given user.
      * The caller is responsible for calling {@link GoogleToolsContext#close()} when done.

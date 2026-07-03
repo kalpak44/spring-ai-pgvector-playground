@@ -8,7 +8,7 @@ import online.pavelusanli.model.common.Role;
 import online.pavelusanli.model.entity.Chat;
 import online.pavelusanli.repo.ChatEntryRepository;
 import online.pavelusanli.repo.ChatRepository;
-import online.pavelusanli.services.GoogleMcpService.GoogleToolsContext;
+import online.pavelusanli.tools.GoogleSubAgentTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -30,6 +30,7 @@ public class ChatService {
     private final ChatEntryRepository entryRepo;
     private final ChatClient chatClient;
     private final GoogleMcpService googleMcpService;
+    private final GoogleSubAgentService googleSubAgentService;
 
     public List<Chat> getAllChats(Long userId) {
         return chatRepo.findByUserIdOrderByCreatedAtDesc(userId);
@@ -62,46 +63,43 @@ public class ChatService {
             return emitter;
         }
 
-        GoogleToolsContext google = googleMcpService.buildContext(userId);
+        boolean googleConnected = googleMcpService.isConnected(userId);
 
         var spec = chatClient
                 .prompt()
-                .system(systemPrompt(google.connected()))
+                .system(systemPrompt(googleConnected))
                 .user(userPrompt)
                 .advisors(a -> a
                         .param(ChatMemory.CONVERSATION_ID, chatId)
-                        .param(GoogleAwareAdvisor.IS_TOOL_REQUEST, google.connected())
+                        .param(GoogleAwareAdvisor.IS_TOOL_REQUEST, googleConnected)
                         .param(GoogleAwareAdvisor.USER_ID, userId));
 
-        if (google.connected() && !google.tools().isEmpty()) {
-            spec.tools(google.tools());
+        if (googleConnected) {
+            spec.tools(new GoogleSubAgentTool(userId, googleSubAgentService));
         }
 
         spec.stream()
                 .chatResponse()
                 .subscribe(
                         response -> processToken(response, emitter),
-                        err -> {
-                            google.close();
-                            emitter.completeWithError(err);
-                        },
-                        () -> {
-                            google.close();
-                            emitter.complete();
-                        });
+                        emitter::completeWithError,
+                        emitter::complete);
 
         return emitter;
     }
 
     private static String systemPrompt(boolean googleConnected) {
         if (googleConnected) {
-            return "You are a helpful AI assistant. "
-                    + "The user has connected their Google account. "
-                    + "Use the Gmail and Google Calendar tools when asked about emails or calendar events.";
+            return """
+                    You are a helpful AI assistant with access to a Google services sub-agent.
+                    The user has connected their Google account (Gmail and Google Calendar are available).
+                    When the user asks about emails or calendar events, use the Google sub-agent tool with a precise, self-contained task description.
+                    Compose your final response using the sub-agent's result — summarize naturally rather than quoting raw output verbatim.
+                    """;
         }
         return "You are a helpful AI assistant. "
                 + "The user's Google account is not connected. "
-                + "If asked about emails or calendar events, let them know Google connector is not enabled or not enough permissions provided.";
+                + "If asked about emails or calendar events, let them know the Google connector is not enabled or requires additional permissions.";
     }
 
     private void addEntry(Long chatId, String content, Role role) {
