@@ -1,31 +1,54 @@
 spring:
   application:
-    name: Moy_LLM
+    name: spring-ai-pgvector-playground
+
   messages:
     basename: messages
     encoding: UTF-8
-  main:
-    allow-circular-references: true
+
+  web:
+    locale: en
+
+  # AI
   ai:
     ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       chat:
-        enabled: false
-  datasource:
-    url: jdbc:postgresql://localhost:5432/ragdb
-    username: postgres
-    password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: update
-  # ai:
-  #   vectorstore:
-  #     pgvector:
-  #       table-name:
+        model: ${OLLAMA_MODEL:gemma4:e4b}
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: never   # schema managed by ddl-auto
 
+  # Database
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ragdb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+
+# Google OAuth
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
+  redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/settings/connectors/google/callback}
+
+# MCP
+mcp:
+  google:
+    url: ${MCP_GOOGLE_URL:http://localhost:3100}
+
+# App
 app:
   knowledgebase:
     path: knowledgebase
 
+# Logging
 logging:
   level:
     org.springframework.ai.chat.client.advisor: DEBUG

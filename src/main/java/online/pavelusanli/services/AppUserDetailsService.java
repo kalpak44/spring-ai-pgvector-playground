@@ -1,6 +1,6 @@
 package online.pavelusanli.services;
 
-import online.pavelusanli.model.AppUser;
+import online.pavelusanli.model.entity.AppUser;
 import online.pavelusanli.repo.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;

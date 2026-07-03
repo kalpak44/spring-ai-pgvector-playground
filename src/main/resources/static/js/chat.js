@@ -3,9 +3,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // ── Chat ─────────────────────────────────────────────
     const sendButton        = document.getElementById("send-button");
     const chatInput         = document.getElementById("chat-input");
-    const messagesContainer = document.getElementById("messages");
+    const messagesScroll    = document.getElementById("messages");
+    const messagesContainer = document.getElementById("messages-inner");
 
-    if (!sendButton || !chatInput || !messagesContainer) return;
+    if (!sendButton || !chatInput || !messagesScroll || !messagesContainer) return;
 
     chatInput.addEventListener("input", function () {
         this.style.height = "auto";
@@ -28,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const userDiv = document.createElement("div");
         userDiv.className = "flex items-end justify-end gap-2";
         userDiv.innerHTML = `
-            <div class="max-w-xl bg-violet-700 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed shadow-md shadow-violet-950/50 bubble">${escapeHtml(prompt)}</div>
+            <div class="max-w-lg bg-violet-700 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed shadow-md shadow-violet-950/50 bubble">${escapeHtml(prompt)}</div>
             <div class="w-7 h-7 rounded-full bg-zinc-700 border border-zinc-600/60 flex items-center justify-center shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
@@ -43,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const aiDiv = document.createElement("div");
         aiDiv.className = "flex items-end gap-2";
         const aiBubble = document.createElement("div");
-        aiBubble.className = "max-w-xl bg-zinc-800 text-zinc-100 border border-zinc-700/50 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm bubble";
+        aiBubble.className = "max-w-lg bg-zinc-800 text-zinc-100 border border-zinc-700/50 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm bubble";
         aiDiv.innerHTML = `
             <div class="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center shrink-0 shadow-md shadow-violet-900/40">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -70,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function scrollToBottom() {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        messagesScroll.scrollTop = messagesScroll.scrollHeight;
     }
 
     function escapeHtml(text) {

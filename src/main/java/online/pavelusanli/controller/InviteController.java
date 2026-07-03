@@ -2,7 +2,8 @@ package online.pavelusanli.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import online.pavelusanli.model.AppUser;
+import lombok.RequiredArgsConstructor;
+import online.pavelusanli.model.entity.AppUser;
 import online.pavelusanli.repo.UserRepository;
 import online.pavelusanli.services.AppUserDetailsService;
 import org.springframework.context.MessageSource;
@@ -15,43 +16,33 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Locale;
 
 @Controller
 @RequestMapping("/invite")
+@RequiredArgsConstructor
 public class InviteController {
+
+    private static final String VIEW_INVITE = "invite";
+    private static final String REDIRECT_HOME = "redirect:/";
+    private static final String ATTR_TOKEN = "token";
+    private static final String ATTR_ERROR = "error";
+    private static final String MSG_PASSWORD_MISMATCH = "invite.error.password_mismatch";
+    private static final String MSG_PASSWORD_SHORT = "invite.error.password_short";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AppUserDetailsService userDetailsService;
     private final MessageSource messageSource;
 
-    public InviteController(UserRepository userRepository,
-                            PasswordEncoder passwordEncoder,
-                            AppUserDetailsService userDetailsService,
-                            MessageSource messageSource) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.userDetailsService = userDetailsService;
-        this.messageSource = messageSource;
-    }
-
     @GetMapping("/{token}")
     public String invitePage(@PathVariable String token, Model model) {
-        if (isAuthenticated()) return "redirect:/";
-
-        if (userRepository.findByInviteToken(token).isEmpty()) {
-            return "redirect:/login";
-        }
-
-        model.addAttribute("token", token);
-        return "invite";
+        if (isAuthenticated()) return REDIRECT_HOME;
+        if (userRepository.findByInviteToken(token).isEmpty()) return REDIRECT_HOME;
+        model.addAttribute(ATTR_TOKEN, token);
+        return VIEW_INVITE;
     }
 
     @PostMapping("/{token}")
@@ -63,20 +54,20 @@ public class InviteController {
                                  HttpServletRequest request,
                                  Model model,
                                  Locale locale) {
-        if (isAuthenticated()) return "redirect:/";
+        if (isAuthenticated()) return REDIRECT_HOME;
 
         AppUser user = userRepository.findByInviteToken(token).orElse(null);
-        if (user == null) return "redirect:/login";
+        if (user == null) return REDIRECT_HOME;
 
-        if (!password.equals(passwordConfirm)) {
-            model.addAttribute("token", token);
-            model.addAttribute("error", messageSource.getMessage("invite.error.password_mismatch", null, locale));
-            return "invite";
-        }
         if (password.length() < 6) {
-            model.addAttribute("token", token);
-            model.addAttribute("error", messageSource.getMessage("invite.error.password_short", null, locale));
-            return "invite";
+            model.addAttribute(ATTR_TOKEN, token);
+            model.addAttribute(ATTR_ERROR, msg(MSG_PASSWORD_SHORT, locale));
+            return VIEW_INVITE;
+        }
+        if (!password.equals(passwordConfirm)) {
+            model.addAttribute(ATTR_TOKEN, token);
+            model.addAttribute(ATTR_ERROR, msg(MSG_PASSWORD_MISMATCH, locale));
+            return VIEW_INVITE;
         }
 
         user.setFirstName(firstName);
@@ -86,7 +77,6 @@ public class InviteController {
         user.setEnabled(true);
         userRepository.save(user);
 
-        // Programmatic login
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -96,7 +86,11 @@ public class InviteController {
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 SecurityContextHolder.getContext());
 
-        return "redirect:/";
+        return REDIRECT_HOME;
+    }
+
+    private String msg(String key, Locale locale) {
+        return messageSource.getMessage(key, null, locale);
     }
 
     private boolean isAuthenticated() {

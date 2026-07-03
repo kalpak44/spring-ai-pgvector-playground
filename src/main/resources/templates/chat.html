@@ -109,7 +109,8 @@
     <main class="flex-1 flex flex-col overflow-hidden bg-zinc-950">
 
         <!-- Messages -->
-        <div class="flex-1 overflow-y-auto px-6 py-6 chat-scroll" id="messages" style="display:flex;flex-direction:column;gap:1.25rem;">
+        <div class="flex-1 overflow-y-auto chat-scroll" id="messages">
+            <div id="messages-inner" style="width:100%;padding:1.5rem 1.5rem;display:flex;flex-direction:column;gap:1.25rem;min-height:100%;">
 
             <!-- No chat selected -->
             <th:block th:if="${chat == null}">
@@ -130,7 +131,7 @@
 
                         <!-- User message -->
                         <div th:if="${entry.role.role eq 'user'}" class="flex items-end justify-end gap-2">
-                            <div class="max-w-xl bg-violet-700 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed shadow-md shadow-violet-950/50 bubble"
+                            <div class="max-w-lg bg-violet-700 text-white rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed shadow-md shadow-violet-950/50 bubble"
                                  th:text="${entry.content}"></div>
                             <div class="w-7 h-7 rounded-full bg-zinc-700 border border-zinc-600/60 flex items-center justify-center shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -146,13 +147,15 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
                                 </svg>
                             </div>
-                            <div class="max-w-xl bg-zinc-800 text-zinc-100 border border-zinc-700/50 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm bubble"
+                            <div class="max-w-lg bg-zinc-800 text-zinc-100 border border-zinc-700/50 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm bubble"
                                  th:text="${entry.content}"></div>
                         </div>
 
                     </th:block>
                 </th:block>
             </th:block>
+
+            </div>
         </div>
 
         <!-- Input -->

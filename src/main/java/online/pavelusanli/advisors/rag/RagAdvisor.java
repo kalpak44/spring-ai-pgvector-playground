@@ -11,12 +11,15 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static online.pavelusanli.advisors.expansion.ExpansionQueryAdvisor.ENRICHED_QUESTION;
 
+@Slf4j
 @Builder
 public class RagAdvisor implements BaseAdvisor {
 
@@ -45,7 +48,7 @@ public class RagAdvisor implements BaseAdvisor {
         List<Document> documents = vectorStore.similaritySearch(
                 SearchRequest.from(searchRequest).query(queryToRag).topK(searchRequest.getTopK() * 2).build());
 
-        if (documents == null || documents.isEmpty()) {
+        if (documents.isEmpty()) {
             return chatClientRequest.mutate()
                     .context("CONTEXT", "No documents found for this query.")
                     .build();

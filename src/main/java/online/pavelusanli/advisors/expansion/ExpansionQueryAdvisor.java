@@ -2,6 +2,7 @@ package online.pavelusanli.advisors.expansion;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -9,10 +10,11 @@ import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 
 import java.util.Map;
 
+@Slf4j
 @Builder
 public class ExpansionQueryAdvisor implements BaseAdvisor {
 
@@ -53,7 +55,7 @@ public class ExpansionQueryAdvisor implements BaseAdvisor {
 
     public static ExpansionQueryAdvisorBuilder builder(ChatModel chatModel) {
         return new ExpansionQueryAdvisorBuilder().chatClient(ChatClient.builder(chatModel)
-                .defaultOptions(OllamaOptions.builder().temperature(0.0).topK(1).topP(0.1).repeatPenalty(1.0).build())
+                .defaultOptions(OllamaChatOptions.builder().temperature(0.0).topK(1).topP(0.1).repeatPenalty(1.0))
                 .build());
     }
 

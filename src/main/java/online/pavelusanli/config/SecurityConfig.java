@@ -22,21 +22,19 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authProvider(AppUserDetailsService userDetailsService) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/setup", "/login", "/invite/**", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/settings/system", "/settings/users", "/settings/connectors", "/settings/boards", "/settings/boards/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/settings/system", "/settings/users/new", "/settings/users/*/delete", "/settings/boards/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/settings/ollama").hasRole("ADMIN")
+                .requestMatchers("/settings/users", "/settings/users/**", "/settings/boards", "/settings/boards/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/settings/users/new", "/settings/users/*/delete", "/settings/boards/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

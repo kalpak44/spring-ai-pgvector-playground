@@ -1,10 +1,9 @@
 package online.pavelusanli.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import online.pavelusanli.model.AppUser;
-import online.pavelusanli.model.UserRole;
+import lombok.RequiredArgsConstructor;
+import online.pavelusanli.model.common.UserRole;
+import online.pavelusanli.model.entity.AppUser;
 import online.pavelusanli.repo.UserRepository;
-import online.pavelusanli.services.SystemSettingsService;
 import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -16,71 +15,58 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Locale;
 
 @Controller
+@RequiredArgsConstructor
 public class SetupController {
 
+    private static final String PATH_LOGIN = "/login";
+    private static final String PATH_SETUP = "/setup";
+    private static final String VIEW_SETUP = "setup";
+    private static final String VIEW_LOGIN = "login";
+    private static final String REDIRECT_HOME = "redirect:/";
+    private static final String REDIRECT_SETUP = "redirect:%s".formatted(PATH_SETUP);
+    private static final String REDIRECT_LOGIN_DONE = "redirect:%s?setup=done".formatted(PATH_LOGIN);
+    private static final String ATTR_ERROR = "error";
+    private static final String MSG_PASSWORD_MISMATCH = "setup.error.password_mismatch";
+    private static final String MSG_PASSWORD_SHORT = "setup.error.password_short";
+
     private final UserRepository userRepository;
-    private final SystemSettingsService settingsService;
     private final PasswordEncoder passwordEncoder;
     private final MessageSource messageSource;
 
-    public SetupController(UserRepository userRepository,
-                           SystemSettingsService settingsService,
-                           PasswordEncoder passwordEncoder,
-                           MessageSource messageSource) {
-        this.userRepository = userRepository;
-        this.settingsService = settingsService;
-        this.passwordEncoder = passwordEncoder;
-        this.messageSource = messageSource;
-    }
-
-    @GetMapping("/login")
+    @GetMapping(PATH_LOGIN)
     public String loginPage() {
-        if (userRepository.count() == 0) {
-            return "redirect:/setup";
+        if (!userRepository.existsByRole(UserRole.ADMIN)) {
+            return REDIRECT_SETUP;
         }
-        return "login";
+        return VIEW_LOGIN;
     }
 
-    @GetMapping("/setup")
-    public String setupPage(@RequestParam(required = false, defaultValue = "en") String lang,
-                            HttpServletRequest request, Model model) {
-        if (userRepository.count() > 0) {
-            return "redirect:/login";
+    @GetMapping(PATH_SETUP)
+    public String setupPage() {
+        if (userRepository.existsByRole(UserRole.ADMIN)) {
+            return REDIRECT_HOME;
         }
-        request.setAttribute("locale.preview", lang);
-        model.addAttribute("selectedLang", lang);
-        return "setup";
+        return VIEW_SETUP;
     }
 
-    @PostMapping("/setup")
+    @PostMapping(PATH_SETUP)
     public String doSetup(@RequestParam String firstName,
                           @RequestParam String lastName,
                           @RequestParam String username,
                           @RequestParam String password,
                           @RequestParam String passwordConfirm,
-                          @RequestParam String timezone,
-                          @RequestParam String language,
-                          @RequestParam String ollamaBaseUrl,
-                          @RequestParam String ollamaModel,
-                          HttpServletRequest request,
                           Model model) {
-        if (userRepository.count() > 0) {
-            return "redirect:/login";
+        if (userRepository.existsByRole(UserRole.ADMIN)) {
+            return REDIRECT_HOME;
         }
-
-        // Apply selected language for this request's rendering
-        request.setAttribute("locale.preview", language);
-        model.addAttribute("selectedLang", language);
-
-        Locale locale = "bg".equals(language) ? Locale.forLanguageTag("bg") : Locale.ENGLISH;
 
         if (!password.equals(passwordConfirm)) {
-            model.addAttribute("error", messageSource.getMessage("setup.error.password_mismatch", null, locale));
-            return "setup";
+            model.addAttribute(ATTR_ERROR, messageSource.getMessage(MSG_PASSWORD_MISMATCH, null, Locale.ENGLISH));
+            return VIEW_SETUP;
         }
         if (password.length() < 6) {
-            model.addAttribute("error", messageSource.getMessage("setup.error.password_short", null, locale));
-            return "setup";
+            model.addAttribute(ATTR_ERROR, messageSource.getMessage(MSG_PASSWORD_SHORT, null, Locale.ENGLISH));
+            return VIEW_SETUP;
         }
 
         userRepository.save(AppUser.builder()
@@ -92,11 +78,6 @@ public class SetupController {
                 .enabled(true)
                 .build());
 
-        settingsService.set("ollama.base_url", ollamaBaseUrl);
-        settingsService.set("ollama.model", ollamaModel);
-        settingsService.set("timezone", timezone);
-        settingsService.set("language", language);
-
-        return "redirect:/login?setup=done";
+        return REDIRECT_LOGIN_DONE;
     }
 }

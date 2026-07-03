@@ -10,6 +10,23 @@
 </head>
 <body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
 
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideModal()"></div>
+    <div class="relative bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <h3 class="text-zinc-100 font-medium mb-1.5" th:text="#{settings.profile.confirm.title}">Save changes?</h3>
+        <p class="text-zinc-500 text-sm mb-5" th:text="#{settings.profile.confirm.message}">Your profile information will be updated.</p>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="hideModal()"
+                    class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                    th:text="#{settings.button.cancel}">Cancel</button>
+            <button type="button" onclick="document.getElementById('profileForm').submit()"
+                    class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40"
+                    th:text="#{settings.button.confirm}">Confirm</button>
+        </div>
+    </div>
+</div>
+
 <!-- Header -->
 <header class="h-14 border-b border-zinc-800/80 flex items-center px-6 gap-4 shrink-0" style="background:#0c0c0f;">
     <a href="/settings" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
@@ -26,11 +43,15 @@
 <main class="flex-1 flex flex-col items-center px-6 py-10">
     <div class="w-full max-w-lg">
 
-        <div th:if="${profileError}" class="mb-5 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm" th:text="${profileError}"></div>
-        <div th:if="${profileSuccess}" class="mb-5 px-3 py-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm" th:text="${profileSuccess}"></div>
+        <div th:if="${profileError}"
+             class="mb-5 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+             th:text="${profileError}"></div>
+        <div id="validationError"
+             class="hidden mb-5 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"></div>
 
         <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6">
-            <form th:action="@{/settings/profile}" method="post" class="flex flex-col gap-4">
+            <p class="text-zinc-100 font-medium mb-5" th:text="#{settings.profile.heading}">Profile settings</p>
+            <form id="profileForm" th:action="@{/settings/profile}" method="post" class="flex flex-col gap-4">
 
                 <div class="grid grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1.5">
@@ -45,30 +66,27 @@
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-xs text-zinc-400" th:text="#{settings.field.username}">Username</label>
-                    <input name="username" type="text" required th:value="${currentUser.username}"
-                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
-                </div>
-
                 <div class="border-t border-zinc-800/60 pt-4">
-                    <p class="text-xs text-zinc-500 mb-3" th:text="#{settings.password.hint}">Leave password fields blank to keep current password.</p>
+                    <p class="text-xs text-zinc-500 mb-3" th:text="#{settings.password.hint}">Leave blank to keep current password.</p>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="flex flex-col gap-1.5">
                             <label class="text-xs text-zinc-400" th:text="#{settings.field.new_password}">New Password</label>
-                            <input name="newPassword" type="password" placeholder="••••••"
+                            <input id="newPassword" name="newPassword" type="password" placeholder="***"
                                    class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
                         </div>
                         <div class="flex flex-col gap-1.5">
                             <label class="text-xs text-zinc-400" th:text="#{settings.field.confirm}">Confirm</label>
-                            <input name="newPasswordConfirm" type="password" placeholder="••••••"
+                            <input id="newPasswordConfirm" name="newPasswordConfirm" type="password" placeholder="***"
                                    class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end pt-1">
-                    <button type="submit"
+                <div class="flex justify-center gap-3 pt-1">
+                    <a href="/settings"
+                       class="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                       th:text="#{settings.button.cancel}">Cancel</a>
+                    <button type="button" onclick="validateAndConfirm()"
                             class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40"
                             th:text="#{settings.button.save_profile}">Save Profile</button>
                 </div>
@@ -77,6 +95,39 @@
 
     </div>
 </main>
+
+<script th:inline="javascript">
+    const MSG_PASSWORD_SHORT = /*[[#{settings.profile.error.password_short}]]*/ 'Password must be at least 6 characters.';
+    const MSG_PASSWORD_MISMATCH = /*[[#{settings.profile.error.password_mismatch}]]*/ 'Passwords do not match.';
+
+    function validateAndConfirm() {
+        const pwd = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('newPasswordConfirm').value;
+        const errorEl = document.getElementById('validationError');
+
+        if (pwd && pwd.length < 6) {
+            errorEl.textContent = MSG_PASSWORD_SHORT;
+            errorEl.classList.remove('hidden');
+            return;
+        }
+        if (pwd !== confirm) {
+            errorEl.textContent = MSG_PASSWORD_MISMATCH;
+            errorEl.classList.remove('hidden');
+            return;
+        }
+
+        errorEl.classList.add('hidden');
+        document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function hideModal() {
+        document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') hideModal();
+    });
+</script>
 
 </body>
 </html>

@@ -1,6 +1,6 @@
 package online.pavelusanli.repo;
 
-import online.pavelusanli.model.Chat;
+import online.pavelusanli.model.entity.Chat;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

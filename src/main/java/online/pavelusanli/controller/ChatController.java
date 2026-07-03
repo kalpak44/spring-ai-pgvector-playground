@@ -1,22 +1,20 @@
 package online.pavelusanli.controller;
 
-import online.pavelusanli.model.Chat;
+import lombok.RequiredArgsConstructor;
+import online.pavelusanli.model.entity.Chat;
 import online.pavelusanli.repo.UserRepository;
 import online.pavelusanli.services.ChatService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequiredArgsConstructor
 public class ChatController {
 
-    @Autowired
-    private ChatService chatService;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final ChatService chatService;
+    private final UserRepository userRepository;
 
     @GetMapping("/")
     public String mainPage(ModelMap model, Authentication auth) {

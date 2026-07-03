@@ -1,14 +1,14 @@
 package online.pavelusanli.services;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import online.pavelusanli.model.LoadedDocument;
+import online.pavelusanli.config.props.AppProps;
+import online.pavelusanli.model.entity.LoadedDocument;
 import online.pavelusanli.repo.DocumentRepository;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.TextReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -20,23 +20,17 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DocumentLoaderService implements CommandLineRunner {
 
-    @Autowired
-    private DocumentRepository documentRepository;
-
-    @Autowired
-    private ResourcePatternResolver resolver;
-
-    @Autowired
-    private VectorStore vectorStore;
-
-    @Value("${app.knowledgebase.path:knowledgebase}")
-    private String knowledgebasePath;
+    private final DocumentRepository documentRepository;
+    private final ResourcePatternResolver resolver;
+    private final VectorStore vectorStore;
+    private final AppProps appProps;
 
     @SneakyThrows
     public void loadDocuments() {
-        List<Resource> resources = Arrays.stream(resolver.getResources("file:" + knowledgebasePath + "/**/*.txt")).toList();
+        List<Resource> resources = Arrays.stream(resolver.getResources("file:" + appProps.knowledgebase().path() + "/**/*.txt")).toList();
 
         resources.stream()
                 .map(resource -> Pair.of(resource, calcContentHash(resource)))

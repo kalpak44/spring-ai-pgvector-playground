@@ -1,6 +1,6 @@
 package online.pavelusanli.repo;
 
-import online.pavelusanli.model.Contact;
+import online.pavelusanli.model.entity.Contact;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
