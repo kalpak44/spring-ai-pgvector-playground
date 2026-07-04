@@ -31,7 +31,7 @@ public class GoogleSubAgentService {
                     .user(taskDescription)
                     .tools(context.tools())
                     .call()
-                    .content();
+                    .       content();
             log.debug("Google sub-agent completed for user {}", userId);
             return result;
         } catch (Exception e) {
@@ -55,6 +55,11 @@ public class GoogleSubAgentService {
 
                 Current date and time: %s
                 User timezone: %s — use this timezone when creating events or interpreting dates in the task description.
+
+                CRITICAL — tool usage:
+                You MUST use ONLY the tools explicitly listed in your tools section (Gmail and Google Calendar MCP tools).
+                NEVER call `google:search`, `web_search`, or any search/browser tool — they are not available and will cause an error.
+                If a calendar or email tool exists for the task, use it. If no suitable tool exists, say so.
 
                 Rules:
                 1. Execute the task exactly as described — use only the tools required.
