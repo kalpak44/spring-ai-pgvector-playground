@@ -144,8 +144,7 @@ CREATE TABLE IF NOT EXISTS card (
     id                BIGSERIAL    PRIMARY KEY,
     column_id         BIGINT       NOT NULL REFERENCES board_column(id),
     title             VARCHAR(255) NOT NULL,
-    description_short VARCHAR(512),
-    description_long  TEXT,
+    description       TEXT,
     position          INTEGER      NOT NULL,
     priority          VARCHAR(16)
                           CONSTRAINT card_priority_check

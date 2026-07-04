@@ -194,8 +194,7 @@ public class BoardTools {
             sb.append("Column: ").append(col != null ? col.getName() : "?").append("\n");
             if (card.getPriority() != null) sb.append("Priority: ").append(card.getPriority()).append("\n");
             if (card.getDeadline() != null) sb.append("Deadline: ").append(card.getDeadline().toLocalDate()).append("\n");
-            if (card.getDescriptionShort() != null) sb.append("Summary: ").append(card.getDescriptionShort()).append("\n");
-            if (card.getDescriptionLong() != null) sb.append("Description:\n").append(card.getDescriptionLong()).append("\n");
+            if (card.getDescription() != null) sb.append("Description:\n").append(card.getDescription()).append("\n");
 
             if (!assignments.isEmpty()) {
                 String names = assignments.stream().map(a -> usernameById(a.getUserId())).collect(Collectors.joining(", "));
@@ -228,15 +227,15 @@ public class BoardTools {
             columnName: name of the target column — use listColumns to see options.
             priority: LOW, MEDIUM, HIGH, or CRITICAL — or null to leave unset.
             deadline: ISO date "YYYY-MM-DD" or datetime "YYYY-MM-DDTHH:MM:SS" — or null.
-            descriptionShort: brief summary, max 512 chars.
+            description: full card description text shown on the board card.
             Returns the new card ID.
             """)
     public String createCard(Long boardId, String columnName, String title,
-                              String descriptionShort, String priority, String deadline) {
+                              String description, String priority, String deadline) {
         try {
             Long columnId = resolveColumnByName(boardId, columnName);
             Card card = cardService.createCard(boardId, columnId, userId,
-                    title, descriptionShort, null, parsePriority(priority), null, parseDeadline(deadline),
+                    title, description, parsePriority(priority), null, parseDeadline(deadline),
                     null, null);
             return "Card \"" + card.getTitle() + "\" created with ID " + card.getId()
                     + " in column \"" + columnName + "\".";
@@ -248,23 +247,20 @@ public class BoardTools {
     @Tool(description = """
             Updates fields of an existing card. Pass null for any field to keep its current value.
             Pass an empty string "" to clear an optional text or date field.
+            description: the card description text — or "" to clear — or null to keep.
             priority: LOW, MEDIUM, HIGH, CRITICAL — or "" to clear — or null to keep.
             deadline: ISO date/datetime — or "" to clear — or null to keep.
             Assignees and watchers are managed by their own dedicated tools.
             """)
     public String updateCard(Long boardId, Long cardId, String title,
-                              String descriptionShort, String descriptionLong,
-                              String priority, String deadline) {
+                              String description, String priority, String deadline) {
         try {
             Card current = cardService.getCard(boardId, cardId, userId);
 
             String newTitle = title != null ? title : current.getTitle();
-            String newShort = descriptionShort != null
-                    ? (descriptionShort.isEmpty() ? null : descriptionShort)
-                    : current.getDescriptionShort();
-            String newLong = descriptionLong != null
-                    ? (descriptionLong.isEmpty() ? null : descriptionLong)
-                    : current.getDescriptionLong();
+            String newDescription = description != null
+                    ? (description.isEmpty() ? null : description)
+                    : current.getDescription();
             CardPriority newPriority = priority != null
                     ? (priority.isEmpty() ? null : parsePriority(priority))
                     : current.getPriority();
@@ -278,7 +274,7 @@ public class BoardTools {
                     .map(CardWatcher::getUserId).toList();
 
             cardService.updateCard(boardId, cardId, userId,
-                    newTitle, newShort, newLong, newPriority, current.getColor(), newDeadline,
+                    newTitle, newDescription, newPriority, current.getColor(), newDeadline,
                     assigneeIds, watcherIds);
             return "Card [" + cardId + "] \"" + newTitle + "\" updated.";
         } catch (Exception e) {
@@ -417,7 +413,7 @@ public class BoardTools {
             }
 
             cardService.updateCard(boardId, cardId, userId,
-                    current.getTitle(), current.getDescriptionShort(), current.getDescriptionLong(),
+                    current.getTitle(), current.getDescription(),
                     current.getPriority(), current.getColor(), current.getDeadline(),
                     assigneeIds, watcherIds);
 

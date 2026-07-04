@@ -27,7 +27,7 @@ public class CardService {
 
     @Transactional
     public Card createCard(Long boardId, Long columnId, Long createdBy,
-                           String title, String shortDesc, String longDesc,
+                           String title, String description,
                            CardPriority priority, String color, LocalDateTime deadline,
                            List<Long> assigneeIds, List<Long> watcherIds) {
         boardService.getBoardById(boardId, createdBy);
@@ -37,8 +37,7 @@ public class CardService {
         Card card = cardRepo.save(Card.builder()
                 .columnId(columnId)
                 .title(title)
-                .descriptionShort(blankToNull(shortDesc))
-                .descriptionLong(blankToNull(longDesc))
+                .description(blankToNull(description))
                 .position(nextPosition)
                 .priority(priority)
                 .color(blankToNull(color))
@@ -63,13 +62,12 @@ public class CardService {
 
     @Transactional
     public Card updateCard(Long boardId, Long cardId, Long userId,
-                           String title, String shortDesc, String longDesc,
+                           String title, String description,
                            CardPriority priority, String color, LocalDateTime deadline,
                            List<Long> assigneeIds, List<Long> watcherIds) {
         Card card = getCard(boardId, cardId, userId);
         card.setTitle(title);
-        card.setDescriptionShort(blankToNull(shortDesc));
-        card.setDescriptionLong(blankToNull(longDesc));
+        card.setDescription(blankToNull(description));
         card.setPriority(priority);
         card.setColor(blankToNull(color));
         card.setDeadline(deadline);

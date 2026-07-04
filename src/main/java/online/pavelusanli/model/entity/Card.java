@@ -26,11 +26,8 @@ public class Card {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "description_short", length = 512)
-    private String descriptionShort;
-
-    @Column(name = "description_long", columnDefinition = "TEXT")
-    private String descriptionLong;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @Column(nullable = false)
     private int position;

@@ -98,8 +98,7 @@ public class BoardDetailController {
     @PostMapping("/cards")
     public String createCard(@PathVariable Long boardId,
                              @RequestParam String title,
-                             @RequestParam(required = false, defaultValue = "") String descriptionShort,
-                             @RequestParam(required = false, defaultValue = "") String descriptionLong,
+                             @RequestParam(required = false, defaultValue = "") String description,
                              @RequestParam Long columnId,
                              @RequestParam(required = false) CardPriority priority,
                              @RequestParam(required = false, defaultValue = "") String color,
@@ -125,7 +124,7 @@ public class BoardDetailController {
 
         try {
             cardService.createCard(boardId, columnId, user.getId(),
-                    trimmedTitle, descriptionShort, descriptionLong,
+                    trimmedTitle, description,
                     priority, color, deadlineDate,
                     assigneeIds, watcherIds);
         } catch (Exception e) {

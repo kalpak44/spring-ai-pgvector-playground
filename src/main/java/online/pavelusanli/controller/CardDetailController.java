@@ -100,8 +100,7 @@ public class CardDetailController {
     @PostMapping
     public String updateCard(@PathVariable Long boardId, @PathVariable Long cardId,
                              @RequestParam String title,
-                             @RequestParam(required = false, defaultValue = "") String descriptionShort,
-                             @RequestParam(required = false, defaultValue = "") String descriptionLong,
+                             @RequestParam(required = false, defaultValue = "") String description,
                              @RequestParam Long columnId,
                              @RequestParam(required = false) CardPriority priority,
                              @RequestParam(required = false, defaultValue = "") String color,
@@ -125,7 +124,7 @@ public class CardDetailController {
 
         try {
             Card card = cardService.updateCard(boardId, cardId, user.getId(),
-                    trimmedTitle, descriptionShort, descriptionLong,
+                    trimmedTitle, description,
                     priority, color, BoardDetailController.parseDeadline(deadline),
                     assigneeIds, watcherIds);
 

@@ -184,8 +184,9 @@ public class ChatService {
                      If the name matches clearly, proceed. If ambiguous, show the candidates and ask the user to confirm.
                      If no matching board is found, say so and ask whether they meant a different board
                      or would like to create a new one.
-                   - If no board was mentioned at all, ask which board the ticket belongs to.
-                     You may list available boards via the sub-agent to help the user choose.
+                   - If no board was mentioned at all, list boards via the sub-agent immediately.
+                     If exactly one board exists, use it without asking.
+                     If multiple boards exist and it is not clear which one, show the list and ask the user to pick.
 
                 2. Draft the ticket proactively.
                    - Propose a clear, concise, action-oriented title.

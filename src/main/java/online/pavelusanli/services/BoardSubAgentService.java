@@ -2,6 +2,7 @@ package online.pavelusanli.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import online.pavelusanli.model.entity.AppUser;
 import online.pavelusanli.repo.*;
 import online.pavelusanli.tools.BoardTools;
 import org.springframework.ai.chat.client.ChatClient;
@@ -57,9 +58,14 @@ public class BoardSubAgentService {
         try {
             BoardTools tools = new BoardTools(userId, boardService, cardService,
                     boardColumnRepo, cardRepo, cardAssignmentRepo, cardWatcherRepo, cardCommentRepo, userRepo);
+            AppUser currentUser = userRepo.findById(userId).orElse(null);
+            String userContext = currentUser != null
+                    ? "\n\nCurrent user: username=\"" + currentUser.getUsername() + "\""
+                      + ". When the task refers to \"the requesting user\", \"me\", \"myself\", or the current user, use this username."
+                    : "";
             String result = chatClientBuilder.build()
                     .prompt()
-                    .system(SYSTEM_PROMPT)
+                    .system(SYSTEM_PROMPT + userContext)
                     .user(taskDescription)
                     .tools(tools)
                     .call()

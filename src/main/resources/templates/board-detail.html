@@ -241,7 +241,7 @@
             <!-- Description -->
             <div class="flex flex-col gap-1.5">
                 <label class="text-xs text-zinc-400" th:text="#{boards.ticket.field.description}">Description</label>
-                <textarea name="descriptionLong" rows="3" maxlength="10000"
+                <textarea name="description" rows="3" maxlength="10000"
                           th:placeholder="#{boards.detail.card.field.desc_long.placeholder}"
                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all resize-none"></textarea>
             </div>
@@ -541,9 +541,9 @@
                                th:text="${card.title}"></p>
 
                             <!-- Description — 1-line preview -->
-                            <p th:if="${card.descriptionLong != null and !card.descriptionLong.isEmpty()}"
+                            <p th:if="${card.description != null and !card.description.isEmpty()}"
                                class="text-zinc-500 text-xs leading-relaxed line-clamp-1"
-                               th:text="${card.descriptionLong}"></p>
+                               th:text="${card.description}"></p>
                         </div>
 
                         <!-- Footer: assignees + counts -->
