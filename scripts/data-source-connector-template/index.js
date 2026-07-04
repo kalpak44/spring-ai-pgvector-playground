@@ -10,19 +10,31 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3200;
 
+// Immutable root set at startup — callers cannot escape this directory.
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
+
 const CONNECTOR_INFO = {
     name: 'Filesystem',
     version: '1.0',
     fields: [
-        {key: 'directory', label: 'Documents directory', required: true},
+        {key: 'directory', label: 'Subdirectory within data root (optional)', required: false},
         {key: 'filePattern', label: 'File pattern (glob)', default: '**/*.txt'},
     ],
 };
 
+// Returns true only when `child` is strictly inside `parent`.
+function isWithin(parent, child) {
+    const rel = path.relative(parent, child);
+    return rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
 function resolveDirectory(config) {
-    const dir = config.directory;
-    if (!dir) throw new Error('Missing required field: directory');
-    return path.isAbsolute(dir) ? dir : path.resolve(__dirname, dir);
+    const sub = config.directory || '';
+    const resolved = path.resolve(DATA_DIR, sub);
+    if (resolved !== DATA_DIR && !isWithin(DATA_DIR, resolved)) {
+        throw new Error('Directory is outside the allowed data root');
+    }
+    return resolved;
 }
 
 function md5(content) {
@@ -71,7 +83,10 @@ app.post('/connector/documents', async (req, res) => {
         const files = await listFiles(directory, pattern);
 
         const documents = files.map(relativePath => {
-            const fullPath = path.join(directory, relativePath);
+            const fullPath = path.resolve(directory, relativePath);
+            if (fullPath !== directory && !isWithin(directory, fullPath)) {
+                throw new Error(`Glob pattern escaped data root: ${relativePath}`);
+            }
             const content = fs.readFileSync(fullPath, 'utf8');
             return {
                 id: 'file:' + relativePath,
@@ -104,8 +119,7 @@ app.post('/connector/fetch', (req, res) => {
         const relativePath = documentId.slice('file:'.length);
         const fullPath = path.resolve(directory, relativePath);
 
-        // guard against path traversal
-        if (!fullPath.startsWith(path.resolve(directory))) {
+        if (!isWithin(directory, fullPath)) {
             return res.status(400).json({error: 'Path traversal not allowed'});
         }
 
