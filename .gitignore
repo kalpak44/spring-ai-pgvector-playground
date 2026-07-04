@@ -72,6 +72,9 @@ application-dev.yml
 # ==================== gcloud secrets ====================
 scripts/gcloud/*.json
 
+# ==================== Node.js ====================
+node_modules/
+
 # ==================== Editor & OS ====================
 *.swp
 *.swo
