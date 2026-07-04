@@ -125,14 +125,20 @@ export function registerCalendarTools(server, token) {
       description: "Delete a calendar event",
       inputSchema: z.object({
         eventId: z.string().describe("The calendar event ID to delete"),
-        calendarId: z.string().default("primary"),
+        calendarId: z.string().default("primary").describe("The calendar the event belongs to — must match the calendarId from the event listing, not always 'primary'"),
       }),
       annotations: { destructiveHint: true, idempotentHint: true },
     },
     async ({ eventId, calendarId }) => {
-      const cal = calendarClient(token);
-      await cal.events.delete({ calendarId, eventId });
-      return { content: [{ type: "text", text: `Event ${eventId} deleted.` }] };
+      try {
+        const cal = calendarClient(token);
+        await cal.events.delete({ calendarId, eventId });
+        return { content: [{ type: "text", text: `Event ${eventId} deleted from calendar ${calendarId}.` }] };
+      } catch (err) {
+        const status = err?.response?.status ?? err?.code;
+        const message = err?.response?.data?.error?.message ?? err?.message ?? "Unknown error";
+        return { content: [{ type: "text", text: `Failed to delete event ${eventId} from calendar ${calendarId}: ${status} – ${message}` }], isError: true };
+      }
     }
   );
 

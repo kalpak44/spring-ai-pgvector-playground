@@ -46,7 +46,10 @@ public class BoardService {
     }
 
     public List<Board> getBoardsForUser(Long userId) {
-        return boardRepo.findAccessibleByUserId(userId);
+        log.info("[BoardService] getBoardsForUser userId={}", userId);
+        List<Board> boards = boardRepo.findAccessibleByUserId(userId);
+        log.info("[BoardService] getBoardsForUser returned {} board(s) for userId={}", boards.size(), userId);
+        return boards;
     }
 
     public Board getBoardById(Long boardId, Long userId) {
