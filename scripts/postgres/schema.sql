@@ -233,3 +233,26 @@ CREATE TABLE IF NOT EXISTS board_activity (
 
 CREATE INDEX IF NOT EXISTS idx_board_activity_board_id
     ON board_activity(board_id);
+
+
+-- =================================================
+-- Knowledge Base — Data Sources
+-- =================================================
+
+CREATE TABLE IF NOT EXISTS data_source (
+    id              BIGSERIAL     PRIMARY KEY,
+    name            VARCHAR(255)  NOT NULL,
+    connector_url   VARCHAR(1024) NOT NULL,
+    connector_name  VARCHAR(255),
+    config          JSONB         NOT NULL DEFAULT '{}',
+    status          VARCHAR(32)   NOT NULL DEFAULT 'NEVER_SYNCED'
+                        CONSTRAINT data_source_status_check
+                            CHECK (status IN ('NEVER_SYNCED', 'SYNCING', 'IDLE', 'ERROR')),
+    last_synced_at  TIMESTAMP,
+    chunk_count     INTEGER       NOT NULL DEFAULT 0,
+    error_message   TEXT,
+    created_at      TIMESTAMP     NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_data_source_status
+    ON data_source(status);

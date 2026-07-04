@@ -142,6 +142,30 @@ The main app stores `rawContent` verbatim and passes it to the configured chunki
 
 ---
 
+## Pre-deployed example instance
+
+A live instance with Bulgarian sample data (traffic laws, data protection law, and a local character profile)
+is deployed at:
+
+```
+https://data-source-example.internal.pavel-usanli.online
+```
+
+When registering it in the main app, use these values:
+
+| Field | Value |
+|---|---|
+| Connector URL | `https://data-source-example.internal.pavel-usanli.online` |
+| Subdirectory within data root | *(leave empty to index all documents, or enter `zdp`, `zzld`, or `hora` to limit to one topic)* |
+| File pattern (glob) | `**/*.txt` |
+
+Topic directories:
+- `zdp` — Bulgarian Road Traffic Act (ЗДП) articles
+- `zzld` — Personal Data Protection Act (ЗЗЛД) articles
+- `hora` — Local character profiles
+
+---
+
 ## Registering a connector in the main app
 
 1. Deploy the connector service so it is reachable from the main app (e.g. `http://my-connector:8081`).

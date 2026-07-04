@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/settings/users", "/settings/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/settings/users/new", "/settings/users/*/delete").hasRole("ADMIN")
+                .requestMatchers("/settings/knowledge-base", "/settings/knowledge-base/**").hasRole("ADMIN")
+                .requestMatchers("/api/knowledge-base/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

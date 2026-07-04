@@ -21,7 +21,8 @@ public class SettingsController {
     public enum Section {
         PROFILE("/settings/profile"),
         USER_MANAGEMENT("/settings/users"),
-        CONNECTORS("/settings/connectors");
+        CONNECTORS("/settings/connectors"),
+        KNOWLEDGE_BASE("/settings/knowledge-base");
 
         private final String path;
     }
@@ -29,7 +30,10 @@ public class SettingsController {
     @GetMapping
     public String settingsPage(Model model, Authentication auth) {
         List<Section> sections = new ArrayList<>(List.of(Section.PROFILE, Section.CONNECTORS));
-        if (isAdmin(auth)) sections.add(1, Section.USER_MANAGEMENT);
+        if (isAdmin(auth)) {
+            sections.add(1, Section.USER_MANAGEMENT);
+            sections.add(Section.KNOWLEDGE_BASE);
+        }
         model.addAttribute("sections", sections);
         return "settings";
     }

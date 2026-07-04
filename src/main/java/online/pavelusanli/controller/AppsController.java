@@ -18,8 +18,7 @@ public class AppsController {
     public enum App {
         BOARDS("/apps/boards"),
         CONTACTS("/apps/contacts"),
-        NOTES("/apps/notes"),
-        KNOWLEDGE_BASE("/apps/knowledge-base");
+        NOTES("/apps/notes");
 
         private final String path;
     }

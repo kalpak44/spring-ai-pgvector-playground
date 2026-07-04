@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant — Knowledge Base</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4">
+        <a href="/settings" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm">Back to Settings</span>
+        </a>
+        <span class="text-zinc-700">|</span>
+        <span class="text-zinc-300 text-sm font-medium">Knowledge Base</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <span class="text-xs text-zinc-500" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" title="Sign out" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-2xl flex flex-col gap-5">
+
+        <!-- Page header -->
+        <div class="flex items-center justify-between">
+            <p class="text-zinc-100 font-medium">Data Sources</p>
+            <button onclick="openModal()"
+                    class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                Add Data Source
+            </button>
+        </div>
+
+        <!-- Server-side error -->
+        <div th:if="${error}"
+             class="px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+             th:text="${error}"></div>
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(dataSources)}"
+             class="flex flex-col items-center justify-center gap-3 py-20 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                </svg>
+            </div>
+            <p class="text-zinc-400 text-sm font-medium">No data sources yet</p>
+            <p class="text-zinc-600 text-xs">Add a connector to start indexing content for the chat.</p>
+        </div>
+
+        <!-- Data source cards -->
+        <div th:each="ds : ${dataSources}"
+             class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <div class="flex items-start justify-between gap-4">
+
+                <!-- Icon + info -->
+                <div class="flex items-start gap-3.5 min-w-0">
+                    <div class="shrink-0 w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"/>
+                        </svg>
+                    </div>
+
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                            <span class="text-zinc-100 font-medium text-sm" th:text="${ds.name}">Name</span>
+
+                            <!-- Status badge -->
+                            <span th:if="${ds.status.name() == 'IDLE'}"
+                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Synced
+                            </span>
+                            <span th:if="${ds.status.name() == 'SYNCING'}"
+                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/25 animate-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>Syncing…
+                            </span>
+                            <span th:if="${ds.status.name() == 'ERROR'}"
+                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/15 text-red-400 border border-red-500/25">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Error
+                            </span>
+                            <span th:if="${ds.status.name() == 'NEVER_SYNCED'}"
+                                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>Never synced
+                            </span>
+                        </div>
+
+                        <p class="text-zinc-500 text-xs" th:text="${ds.connectorName ?: 'Unknown connector'}">Connector</p>
+                        <p class="text-zinc-600 text-xs font-mono truncate mt-0.5" th:text="${ds.connectorUrl}">url</p>
+
+                        <div th:if="${ds.chunkCount > 0}" class="mt-1.5">
+                            <span class="text-zinc-500 text-xs" th:text="${ds.chunkCount + ' chunks'}"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete -->
+                <form th:action="@{/settings/knowledge-base/data-sources/{id}/delete(id=${ds.id})}" method="post" class="shrink-0">
+                    <button type="submit"
+                            onclick="return confirm('Remove this data source?')"
+                            class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-red-500/10 border border-zinc-700/60 hover:border-red-500/40 text-zinc-400 hover:text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                        Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ── Modal ── -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);">
+    <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+
+        <!-- Modal header -->
+        <div class="flex items-center justify-between mb-5">
+            <p class="text-zinc-100 font-medium text-sm">Add Data Source</p>
+            <button onclick="closeModal()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Error banner -->
+        <div id="modalError" class="hidden mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs"></div>
+
+        <!-- Step 1: Name + URL -->
+        <div id="step1" class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Name</label>
+                <input id="dsName" type="text" maxlength="255" placeholder="e.g. laws-repo"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Connector URL</label>
+                <input id="dsUrl" type="text" placeholder="https://connector.example.com"
+                       onkeydown="if(event.key==='Enter') discover()"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all font-mono"/>
+            </div>
+            <div class="flex justify-end gap-3 pt-1">
+                <button type="button" onclick="closeModal()"
+                        class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
+                <button id="discoverBtn" type="button" onclick="discover()"
+                        class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                    </svg>
+                    Discover
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Config (hidden initially) -->
+        <div id="step2" class="hidden flex-col gap-4">
+
+            <!-- Connector badge -->
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                <span id="connectorLabel" class="text-emerald-400 text-xs font-medium"></span>
+            </div>
+
+            <!-- Dynamic config fields -->
+            <div id="configFields" class="flex flex-col gap-3"></div>
+
+            <!-- Save form -->
+            <form id="saveForm" th:action="@{/settings/knowledge-base/data-sources}" method="post" class="flex flex-col gap-4 pt-1">
+                <input type="hidden" id="hiddenName" name="name"/>
+                <input type="hidden" id="hiddenUrl" name="connectorUrl"/>
+                <input type="hidden" id="hiddenConnectorName" name="connectorName"/>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="backToStep1()"
+                            class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Back</button>
+                    <button type="submit" onclick="prepareSubmit()"
+                            class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function esc(s) {
+        return String(s ?? '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    }
+
+    function openModal() {
+        resetModal();
+        const m = document.getElementById('modal');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        setTimeout(() => document.getElementById('dsName').focus(), 50);
+    }
+
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+        document.getElementById('modal').classList.remove('flex');
+        resetModal();
+    }
+
+    function resetModal() {
+        document.getElementById('dsName').value = '';
+        document.getElementById('dsUrl').value = '';
+        document.getElementById('configFields').innerHTML = '';
+        showStep(1);
+        hideError();
+    }
+
+    function showStep(n) {
+        document.getElementById('step1').classList.toggle('hidden', n !== 1);
+        document.getElementById('step1').classList.toggle('flex', n === 1);
+        document.getElementById('step2').classList.toggle('hidden', n !== 2);
+        document.getElementById('step2').classList.toggle('flex', n === 2);
+    }
+
+    function backToStep1() {
+        showStep(1);
+        hideError();
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('modalError');
+        el.textContent = msg;
+        el.classList.remove('hidden');
+    }
+
+    function hideError() {
+        document.getElementById('modalError').classList.add('hidden');
+    }
+
+    async function discover() {
+        const url = document.getElementById('dsUrl').value.trim();
+        const name = document.getElementById('dsName').value.trim();
+        if (!url) { showError('Please enter a Connector URL.'); return; }
+        if (!name) { showError('Please enter a Name.'); return; }
+
+        const btn = document.getElementById('discoverBtn');
+        btn.disabled = true;
+        btn.textContent = 'Connecting…';
+        hideError();
+
+        try {
+            const resp = await fetch('/api/knowledge-base/discover', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url})
+            });
+            const data = await resp.json();
+            if (!resp.ok || data.error) {
+                showError(data.error || 'Failed to reach connector.');
+                return;
+            }
+            renderStep2(data, name, url);
+        } catch (e) {
+            showError('Network error: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg> Discover';
+        }
+    }
+
+    function renderStep2(info, name, url) {
+        document.getElementById('connectorLabel').textContent = info.name + ' · reachable';
+
+        const container = document.getElementById('configFields');
+        container.innerHTML = '';
+        (info.fields || []).forEach(f => {
+            const isSecret = f.secret === true;
+            const isRequired = f.required === true;
+            const labelText = esc(f.label) + (isRequired ? ' <span class="text-red-400">*</span>' : '');
+            container.innerHTML += `
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400">${labelText}</label>
+                    <input type="${isSecret ? 'password' : 'text'}"
+                           data-key="${esc(f.key)}"
+                           value="${esc(f.defaultValue || '')}"
+                           placeholder="${esc(f.defaultValue || '')}"
+                           ${isRequired ? 'required' : ''}
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all${isSecret ? ' font-mono' : ''}"/>
+                </div>`;
+        });
+
+        document.getElementById('hiddenName').value = name;
+        document.getElementById('hiddenUrl').value = url;
+        document.getElementById('hiddenConnectorName').value = info.name || '';
+
+        showStep(2);
+    }
+
+    function prepareSubmit() {
+        const form = document.getElementById('saveForm');
+        form.querySelectorAll('input[name^="cfg_"]').forEach(el => el.remove());
+        document.querySelectorAll('#configFields [data-key]').forEach(input => {
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'cfg_' + input.dataset.key;
+            hidden.value = input.value;
+            form.appendChild(hidden);
+        });
+    }
+
+    document.getElementById('modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
+
+</body>
+</html>
