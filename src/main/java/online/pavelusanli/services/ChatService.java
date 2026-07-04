@@ -138,8 +138,10 @@ public class ChatService {
                     3. Show the draft and ask for approval:
                        Present it clearly, then ask: "Does this look good, or would you like me to change anything?"
 
-                    4. Execute after confirmation. Once approved, pass the complete content to the sub-agent
-                       in a self-contained task description so it can execute without further reasoning.
+                    4. Execute after confirmation. IMMEDIATELY call the sub-agent — do not write any text
+                       before the tool call. Pass the complete content in a self-contained task description.
+                       Your reply MUST be based solely on the sub-agent's actual return value.
+                       NEVER report success before the tool has responded.
 
                     ## Using the sub-agent
                     Pass precise task descriptions. For write tasks, include all final content (subject, body,
@@ -210,8 +212,12 @@ public class ChatService {
                    - If the reply is genuinely ambiguous, ask: "Should I go ahead and create it?"
 
                 4. Execute after confirmation.
-                   Once approved, delegate to the sub-agent with a precise, self-contained task description
-                   including the board name or ID, column, and all final ticket content.
+                   IMMEDIATELY call executeBoardTask — do not write any text before the tool call.
+                   Pass a precise, self-contained task description with the board name or ID, column,
+                   and all final ticket content (title, description, priority, deadline, assignee).
+                   Your reply to the user MUST be based solely on the tool's actual return value.
+                   NEVER report success, a card ID, or any ticket detail before the tool has responded.
+                   If the tool returns an error, report the error to the user — do not retry silently.
 
                 ### Context rules
                 - When the user references a board or ticket without specifying an ID, use listBoards or listCards
@@ -220,13 +226,12 @@ public class ChatService {
                 - Priority values: LOW, MEDIUM, HIGH, CRITICAL.
                 - Deadline format: ISO date YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS.
 
-                ### Data integrity — STRICT
-                Never fabricate boards, tickets, users, columns, comments, or any other application data.
-                Always retrieve real data from the backend via the sub-agent before presenting it to the user.
-                If no data is returned, say so explicitly ("You have no boards yet", "No tickets found").
-                If retrieval fails, explain the failure and suggest retrying or checking permissions.
-                Do not infer or assume the existence of any entity based on prior conversation context.
-                The backend is the sole source of truth — treat it as such for every operation.
+                ### Data integrity — CRITICAL
+                NEVER fabricate boards, tickets, users, columns, comments, or any other application data.
+                NEVER claim an operation succeeded without having called the tool and received a success response.
+                Every piece of data you present to the user (IDs, names, status, assignees) must come
+                directly from a tool call result in this conversation — not from memory or inference.
+                If a tool call fails or returns no data, say so explicitly. Do not invent a plausible result.
 
                 """;
     }
