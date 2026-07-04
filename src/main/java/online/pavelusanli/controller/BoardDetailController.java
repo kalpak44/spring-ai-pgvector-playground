@@ -2,6 +2,7 @@ package online.pavelusanli.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import online.pavelusanli.model.common.BoardMemberRole;
 import online.pavelusanli.model.common.CardPriority;
 import online.pavelusanli.model.entity.*;
 import online.pavelusanli.repo.*;
@@ -64,11 +65,14 @@ public class BoardDetailController {
 
         // Load enrichment data for card tiles
         List<Long> cardIds = allCards.stream().map(Card::getId).toList();
-        Map<Long, AppUser> firstAssigneeByCard = loadFirstAssignees(cardIds);
+        Map<Long, List<AppUser>> assigneesByCard = loadAssigneesByCard(cardIds);
         Map<Long, Long> watcherCountByCard = loadWatcherCounts(cardIds);
         Map<Long, Long> commentCountByCard = loadCommentCounts(cardIds);
 
-        // Board members for assignee/watcher selection in the create modal
+        // Board members for assignee/watcher selection and settings panel
+        List<BoardMember> memberEntities = boardMemberRepo.findByBoardId(boardId);
+        Map<Long, BoardMemberRole> memberRoles = memberEntities.stream()
+                .collect(Collectors.toMap(BoardMember::getUserId, BoardMember::getRole));
         List<AppUser> boardMembers = loadBoardMembers(boardId);
 
         List<BoardNotification> notifications = boardNotifRepo
@@ -78,10 +82,12 @@ public class BoardDetailController {
         model.addAttribute("board", board);
         model.addAttribute("columns", columns);
         model.addAttribute("cardsByColumn", cardsByColumn);
-        model.addAttribute("firstAssigneeByCard", firstAssigneeByCard);
+        model.addAttribute("assigneesByCard", assigneesByCard);
+        model.addAttribute("today", LocalDate.now());
         model.addAttribute("watcherCountByCard", watcherCountByCard);
         model.addAttribute("commentCountByCard", commentCountByCard);
         model.addAttribute("boardMembers", boardMembers);
+        model.addAttribute("memberRoles", memberRoles);
         model.addAttribute("isOwner", boardService.isOwner(boardId, user.getId()));
         model.addAttribute("notifications", notifications);
         model.addAttribute("unreadCount", notifications.size());
@@ -137,6 +143,54 @@ public class BoardDetailController {
         return redirect(boardId);
     }
 
+    @PostMapping("/settings")
+    public String updateSettings(@PathVariable Long boardId,
+                                 @RequestParam String name,
+                                 @RequestParam(required = false, defaultValue = "") String description,
+                                 Authentication auth,
+                                 RedirectAttributes ra,
+                                 Locale locale) {
+        AppUser user = userRepo.findByUsername(auth.getName()).orElseThrow();
+        String trimmedName = name.trim();
+        if (trimmedName.isBlank()) {
+            ra.addFlashAttribute("settingsError", msg("boards.new.error.title_required", locale));
+            return redirect(boardId);
+        }
+        if (trimmedName.length() > 128) {
+            ra.addFlashAttribute("settingsError", msg("boards.new.error.title_too_long", locale));
+            return redirect(boardId);
+        }
+        boardService.updateBoardName(boardId, user.getId(), trimmedName);
+        boardService.updateBoardDescription(boardId, user.getId(),
+                description.isBlank() ? null : description.trim());
+        return redirect(boardId);
+    }
+
+    @PostMapping("/members")
+    public String addMember(@PathVariable Long boardId,
+                            @RequestParam Long userId,
+                            Authentication auth) {
+        AppUser actor = userRepo.findByUsername(auth.getName()).orElseThrow();
+        boardService.addMember(boardId, actor.getId(), userId);
+        return redirect(boardId);
+    }
+
+    @PostMapping("/members/{memberId}/remove")
+    public String removeMember(@PathVariable Long boardId,
+                               @PathVariable Long memberId,
+                               Authentication auth) {
+        AppUser actor = userRepo.findByUsername(auth.getName()).orElseThrow();
+        boardService.removeMember(boardId, actor.getId(), memberId);
+        return redirect(boardId);
+    }
+
+    @PostMapping("/delete")
+    public String deleteBoard(@PathVariable Long boardId, Authentication auth) {
+        AppUser user = userRepo.findByUsername(auth.getName()).orElseThrow();
+        boardService.deleteBoard(boardId, user.getId());
+        return "redirect:/apps/boards";
+    }
+
     @GetMapping("/users/search")
     @ResponseBody
     public ResponseEntity<List<Map<String, Object>>> searchUsers(
@@ -147,7 +201,7 @@ public class BoardDetailController {
         boardService.getBoardById(boardId, user.getId());
 
         List<Map<String, Object>> results = userRepo
-                .search(user.getUsername(), q, PageRequest.of(0, PRIORITY_MAX_RESULTS))
+                .search(q, PageRequest.of(0, PRIORITY_MAX_RESULTS))
                 .stream()
                 .map(u -> {
                     String displayName = buildDisplayName(u);
@@ -178,20 +232,26 @@ public class BoardDetailController {
         return map;
     }
 
-    private Map<Long, AppUser> loadFirstAssignees(List<Long> cardIds) {
+    private Map<Long, List<AppUser>> loadAssigneesByCard(List<Long> cardIds) {
         if (cardIds.isEmpty()) return Map.of();
         List<CardAssignment> assignments = cardAssignmentRepo.findByCardIdIn(cardIds);
-        // Only keep first assignment per card
-        Map<Long, Long> firstAssigneeIdByCard = new LinkedHashMap<>();
-        assignments.forEach(a -> firstAssigneeIdByCard.putIfAbsent(a.getCardId(), a.getUserId()));
 
-        Set<Long> userIds = new HashSet<>(firstAssigneeIdByCard.values());
+        Map<Long, List<Long>> idsByCard = new LinkedHashMap<>();
+        assignments.forEach(a -> idsByCard
+                .computeIfAbsent(a.getCardId(), k -> new ArrayList<>())
+                .add(a.getUserId()));
+
+        Set<Long> userIds = idsByCard.values().stream()
+                .flatMap(ids -> ids.stream().limit(2))
+                .collect(Collectors.toSet());
+        if (userIds.isEmpty()) return Map.of();
+
         Map<Long, AppUser> usersById = userRepo.findAllById(userIds).stream()
                 .collect(Collectors.toMap(AppUser::getId, Function.identity()));
 
-        Map<Long, AppUser> result = new HashMap<>();
-        firstAssigneeIdByCard.forEach((cardId, userId) ->
-                result.put(cardId, usersById.get(userId)));
+        Map<Long, List<AppUser>> result = new HashMap<>();
+        idsByCard.forEach((cardId, ids) -> result.put(cardId,
+                ids.stream().limit(2).map(usersById::get).filter(Objects::nonNull).toList()));
         return result;
     }
 

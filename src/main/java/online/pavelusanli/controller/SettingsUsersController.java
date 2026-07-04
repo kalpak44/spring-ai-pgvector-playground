@@ -50,7 +50,6 @@ public class SettingsUsersController {
         Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         Page<AppUser> usersPage = userRepository.search(
-                auth.getName(),
                 q.trim(),
                 PageRequest.of(page, PAGE_SIZE, Sort.by(direction, sortField)));
 

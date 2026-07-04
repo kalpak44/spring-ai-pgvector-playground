@@ -16,13 +16,13 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     boolean existsByUsername(String username);
     boolean existsByRole(UserRole role);
 
-    @Query(value = "SELECT u FROM AppUser u WHERE u.username != :me AND " +
+    @Query(value = "SELECT u FROM AppUser u WHERE " +
                    "(:q = '' OR LOWER(u.username) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
                    "LOWER(COALESCE(u.firstName, '')) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
                    "LOWER(COALESCE(u.lastName, '')) LIKE LOWER(CONCAT('%', :q, '%')))",
-           countQuery = "SELECT COUNT(u) FROM AppUser u WHERE u.username != :me AND " +
+           countQuery = "SELECT COUNT(u) FROM AppUser u WHERE " +
                         "(:q = '' OR LOWER(u.username) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
                         "LOWER(COALESCE(u.firstName, '')) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
                         "LOWER(COALESCE(u.lastName, '')) LIKE LOWER(CONCAT('%', :q, '%')))")
-    Page<AppUser> search(@Param("me") String currentUsername, @Param("q") String q, Pageable pageable);
+    Page<AppUser> search(@Param("q") String q, Pageable pageable);
 }

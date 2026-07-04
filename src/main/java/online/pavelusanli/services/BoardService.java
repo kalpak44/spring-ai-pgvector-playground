@@ -71,6 +71,30 @@ public class BoardService {
     }
 
     @Transactional
+    public void addMember(Long boardId, Long actorId, Long targetUserId) {
+        requireOwned(boardId, actorId);
+        if (boardMemberRepo.existsByBoardIdAndUserId(boardId, targetUserId)) {
+            return;
+        }
+        boardMemberRepo.save(BoardMember.builder()
+                .boardId(boardId)
+                .userId(targetUserId)
+                .role(BoardMemberRole.MEMBER)
+                .build());
+        log.debug("User {} added to board {} by {}", targetUserId, boardId, actorId);
+    }
+
+    @Transactional
+    public void removeMember(Long boardId, Long actorId, Long targetUserId) {
+        Board board = requireOwned(boardId, actorId);
+        if (board.getOwnerId().equals(targetUserId)) {
+            throw new IllegalArgumentException("Cannot remove the board owner");
+        }
+        boardMemberRepo.deleteByBoardIdAndUserId(boardId, targetUserId);
+        log.debug("User {} removed from board {} by {}", targetUserId, boardId, actorId);
+    }
+
+    @Transactional
     public void deleteBoard(Long boardId, Long userId) {
         requireOwned(boardId, userId);
 
