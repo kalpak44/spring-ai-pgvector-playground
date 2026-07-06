@@ -3,6 +3,7 @@ package online.pavelusanli.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import online.pavelusanli.model.common.DataSourceStatus;
+import online.pavelusanli.model.entity.ChunkingProfile;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -49,6 +50,10 @@ public class DataSource {
     @Column(name = "chunk_count", nullable = false)
     @Builder.Default
     private int chunkCount = 0;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "chunking_profile_id")
+    private ChunkingProfile chunkingProfile;
 
     @Column(name = "error_message")
     private String errorMessage;

@@ -20,6 +20,9 @@ public class LoadedDocument {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "data_source_id")
+    private Long dataSourceId;
+
     private String filename;
     private String contentHash;
     private String documentType;

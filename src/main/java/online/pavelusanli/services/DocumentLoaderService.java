@@ -9,7 +9,6 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.TextReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.util.Pair;
@@ -21,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentLoaderService implements CommandLineRunner {
+public class DocumentLoaderService {
 
     private final DocumentRepository documentRepository;
     private final ResourcePatternResolver resolver;
@@ -57,8 +56,4 @@ public class DocumentLoaderService implements CommandLineRunner {
         return DigestUtils.md5DigestAsHex(resource.getInputStream());
     }
 
-    @Override
-    public void run(String... args) throws Exception {
-        loadDocuments();
-    }
 }

@@ -110,20 +110,36 @@
                         <div th:if="${ds.chunkCount > 0}" class="mt-1.5">
                             <span class="text-zinc-500 text-xs" th:text="${ds.chunkCount + ' chunks'}"></span>
                         </div>
+                        <div th:if="${ds.chunkingProfile != null}" class="mt-1">
+                            <span class="text-zinc-600 text-xs" th:text="'Profile: ' + ${ds.chunkingProfile.name}"></span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Delete -->
-                <form th:action="@{/settings/knowledge-base/data-sources/{id}/delete(id=${ds.id})}" method="post" class="shrink-0">
-                    <button type="submit"
-                            onclick="return confirm('Remove this data source?')"
+                <!-- Actions -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <form th:action="@{/settings/knowledge-base/data-sources/{id}/sync(id=${ds.id})}" method="post">
+                        <button type="submit"
+                                th:disabled="${ds.status.name() == 'SYNCING'}"
+                                class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-violet-500/10 border border-zinc-700/60 hover:border-violet-500/40 text-zinc-400 hover:text-violet-400 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                            </svg>
+                            Sync Now
+                        </button>
+                    </form>
+
+                    <button type="button"
+                            th:data-id="${ds.id}"
+                            th:data-name="${ds.name}"
+                            onclick="openDeleteModal(this)"
                             class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-red-500/10 border border-zinc-700/60 hover:border-red-500/40 text-zinc-400 hover:text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
                         </svg>
                         Remove
                     </button>
-                </form>
+                </div>
             </div>
         </div>
 
@@ -185,11 +201,22 @@
             <!-- Dynamic config fields -->
             <div id="configFields" class="flex flex-col gap-3"></div>
 
+            <!-- Chunking profile -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Chunking Profile</label>
+                <select id="profileSelect" name="chunkingProfileId"
+                        class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                    <option value="">— None —</option>
+                    <option th:each="p : ${profiles}" th:value="${p.id}" th:text="${p.name}">Profile</option>
+                </select>
+            </div>
+
             <!-- Save form -->
             <form id="saveForm" th:action="@{/settings/knowledge-base/data-sources}" method="post" class="flex flex-col gap-4 pt-1">
                 <input type="hidden" id="hiddenName" name="name"/>
                 <input type="hidden" id="hiddenUrl" name="connectorUrl"/>
                 <input type="hidden" id="hiddenConnectorName" name="connectorName"/>
+                <input type="hidden" id="hiddenProfileId" name="chunkingProfileId"/>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="backToStep1()"
                             class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Back</button>
@@ -324,12 +351,59 @@
             hidden.value = input.value;
             form.appendChild(hidden);
         });
+        document.getElementById('hiddenProfileId').value =
+            document.getElementById('profileSelect').value;
     }
 
     document.getElementById('modal').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
+
+    function openDeleteModal(btn) {
+        document.getElementById('deleteLabel').textContent = btn.dataset.name;
+        document.getElementById('deleteForm').action =
+            '/settings/knowledge-base/data-sources/' + btn.dataset.id + '/delete';
+        const m = document.getElementById('deleteModal');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        const m = document.getElementById('deleteModal');
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+    }
+
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
 </script>
+
+<!-- ── Delete confirmation modal ── -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);">
+    <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-zinc-100 font-medium text-sm">Remove data source?</p>
+            <button onclick="closeDeleteModal()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <p class="text-zinc-400 text-sm mb-1">
+            <span class="text-zinc-200 font-medium" id="deleteLabel"></span>
+        </p>
+        <p class="text-zinc-500 text-xs mb-6">All indexed chunks for this source will be permanently deleted.</p>
+        <form id="deleteForm" method="post" class="flex justify-end gap-3">
+            <button type="button" onclick="closeDeleteModal()"
+                    class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                Delete
+            </button>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>

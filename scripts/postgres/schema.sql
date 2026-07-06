@@ -236,6 +236,26 @@ CREATE INDEX IF NOT EXISTS idx_board_activity_board_id
 
 
 -- =================================================
+-- Knowledge Base — Chunking Profiles
+-- =================================================
+
+    CREATE TABLE IF NOT EXISTS chunking_profile (
+        id             BIGSERIAL    PRIMARY KEY,
+        name           VARCHAR(255) NOT NULL,
+        description    VARCHAR(1000),
+        strategy       VARCHAR(32)  NOT NULL,
+        chunk_size     INTEGER,
+        chunk_overlap  INTEGER,
+        separator      VARCHAR(255),
+        created_at     TIMESTAMP    NOT NULL DEFAULT NOW()
+    );
+
+    INSERT INTO chunking_profile (name, description, strategy, chunk_size, chunk_overlap)
+    VALUES ('Default', 'General purpose — 200 tokens with 20-token overlap', 'FIXED_TOKENS', 200, 20)
+    ON CONFLICT DO NOTHING;
+
+
+-- =================================================
 -- Knowledge Base — Data Sources
 -- =================================================
 
@@ -256,3 +276,9 @@ CREATE TABLE IF NOT EXISTS data_source (
 
 CREATE INDEX IF NOT EXISTS idx_data_source_status
     ON data_source(status);
+
+ALTER TABLE data_source
+    ADD COLUMN IF NOT EXISTS chunking_profile_id BIGINT REFERENCES chunking_profile(id);
+
+ALTER TABLE loaded_document
+    ADD COLUMN IF NOT EXISTS data_source_id BIGINT REFERENCES data_source(id);

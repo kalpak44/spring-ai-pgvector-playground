@@ -22,7 +22,8 @@ public class SettingsController {
         PROFILE("/settings/profile"),
         USER_MANAGEMENT("/settings/users"),
         CONNECTORS("/settings/connectors"),
-        KNOWLEDGE_BASE("/settings/knowledge-base");
+        KNOWLEDGE_BASE("/settings/knowledge-base"),
+        CHUNKING_PROFILES("/settings/chunking-profiles");
 
         private final String path;
     }
@@ -33,6 +34,7 @@ public class SettingsController {
         if (isAdmin(auth)) {
             sections.add(1, Section.USER_MANAGEMENT);
             sections.add(Section.KNOWLEDGE_BASE);
+            sections.add(Section.CHUNKING_PROFILES);
         }
         model.addAttribute("sections", sections);
         return "settings";

@@ -26,6 +26,12 @@ public class ConnectorClient {
 
     public record TestResult(boolean ok, Integer documentCount, String message) {}
 
+    public record ConnectorDocument(String id, String path, String contentHash) {}
+
+    public record ConnectorFetchResult(String path, String rawContent) {}
+
+    private record DocumentsResponse(List<ConnectorDocument> documents) {}
+
     private final RestClient restClient;
 
     public ConnectorClient() {
@@ -53,6 +59,29 @@ public class ConnectorClient {
                 .body(Map.of("config", config))
                 .retrieve()
                 .body(TestResult.class);
+    }
+
+    public List<ConnectorDocument> documents(String baseUrl, Map<String, String> config) {
+        String url = normalize(baseUrl) + "/connector/documents";
+        log.debug("Fetching document list from {}", url);
+        DocumentsResponse response = restClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("config", config))
+                .retrieve()
+                .body(DocumentsResponse.class);
+        return response != null && response.documents() != null ? response.documents() : List.of();
+    }
+
+    public ConnectorFetchResult fetch(String baseUrl, Map<String, String> config, String documentId) {
+        String url = normalize(baseUrl) + "/connector/fetch";
+        log.debug("Fetching document {} from {}", documentId, url);
+        return restClient.post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("config", config, "documentId", documentId))
+                .retrieve()
+                .body(ConnectorFetchResult.class);
     }
 
     private static String normalize(String url) {

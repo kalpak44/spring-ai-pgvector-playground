@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant — Chunking Profiles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4">
+        <a href="/settings" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm">Back to Settings</span>
+        </a>
+        <span class="text-zinc-700">|</span>
+        <span class="text-zinc-300 text-sm font-medium">Chunking Profiles</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <span class="text-xs text-zinc-500" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" title="Sign out" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-2xl flex flex-col gap-5">
+
+        <!-- Page header -->
+        <div class="flex items-center justify-between">
+            <p class="text-zinc-100 font-medium">Profiles</p>
+            <button onclick="openModal()"
+                    class="inline-flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                New Profile
+            </button>
+        </div>
+
+        <!-- Server-side error -->
+        <div th:if="${error}"
+             class="px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+             th:text="${error}"></div>
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(profiles)}"
+             class="flex flex-col items-center justify-center gap-3 py-20 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-zinc-800/60 border border-zinc-700/40 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"/>
+                </svg>
+            </div>
+            <p class="text-zinc-400 text-sm font-medium">No chunking profiles yet</p>
+            <p class="text-zinc-600 text-xs">Create a profile to control how documents are split into chunks.</p>
+        </div>
+
+        <!-- Profile cards -->
+        <div th:each="p : ${profiles}"
+             class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <div class="flex items-start justify-between gap-4">
+
+                <!-- Icon + info -->
+                <div class="flex items-start gap-3.5 min-w-0">
+                    <div class="shrink-0 w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"/>
+                        </svg>
+                    </div>
+
+                    <div class="min-w-0">
+                        <p class="text-zinc-100 font-medium text-sm mb-1" th:text="${p.name}">Name</p>
+
+                        <!-- Strategy badge -->
+                        <span th:if="${p.strategy.name() == 'FIXED_TOKENS'}"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/25"
+                              th:text="|Fixed tokens · ${p.chunkSize} / ${p.chunkOverlap} overlap|">
+                        </span>
+                        <span th:if="${p.strategy.name() == 'CUSTOM_SEPARATOR'}"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/25"
+                              th:text="|Custom separator · '${p.separator}'|">
+                        </span>
+
+                        <p th:if="${p.description != null and !p.description.isEmpty()}"
+                           class="text-zinc-500 text-xs mt-1.5 leading-relaxed"
+                           th:text="${p.description}"></p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button"
+                            th:data-id="${p.id}"
+                            th:data-name="${p.name}"
+                            th:data-description="${p.description}"
+                            th:data-strategy="${p.strategy.name()}"
+                            th:data-chunk-size="${p.chunkSize}"
+                            th:data-chunk-overlap="${p.chunkOverlap}"
+                            th:data-separator="${p.separator}"
+                            onclick="openEditFromBtn(this)"
+                            class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 text-zinc-400 hover:text-zinc-200 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                        </svg>
+                        Edit
+                    </button>
+
+                    <button type="button"
+                            th:data-id="${p.id}"
+                            th:data-name="${p.name}"
+                            onclick="openDeleteModal(this)"
+                            class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-red-500/10 border border-zinc-700/60 hover:border-red-500/40 text-zinc-400 hover:text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ── Modal (create + edit) ── -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);">
+    <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+
+        <!-- Modal header -->
+        <div class="flex items-center justify-between mb-5">
+            <p id="modalTitle" class="text-zinc-100 font-medium text-sm">New Profile</p>
+            <button onclick="closeModal()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Create form -->
+        <form id="createForm" th:action="@{/settings/chunking-profiles}" method="post" class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Name <span class="text-red-400">*</span></label>
+                <input id="createName" name="name" type="text" required maxlength="255" placeholder="e.g. Legal Articles"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Description</label>
+                <input id="createDesc" name="description" type="text" maxlength="1000" placeholder="Optional description"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Strategy <span class="text-red-400">*</span></label>
+                <select id="createStrategy" name="strategy" onchange="toggleCreateFields()"
+                        class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                    <option value="FIXED_TOKENS">Fixed tokens</option>
+                    <option value="CUSTOM_SEPARATOR">Custom separator</option>
+                </select>
+            </div>
+
+            <!-- FIXED_TOKENS fields -->
+            <div id="createFixedFields" class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400">Chunk size</label>
+                    <input id="createChunkSize" name="chunkSize" type="number" value="200" min="10"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400">Overlap</label>
+                    <input id="createOverlap" name="chunkOverlap" type="number" value="20" min="0"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+            </div>
+
+            <!-- CUSTOM_SEPARATOR fields -->
+            <div id="createSepFields" class="hidden flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Separator <span class="text-red-400">*</span></label>
+                <input id="createSeparator" name="separator" type="text" placeholder="\nArt."
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 font-mono focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-1">
+                <button type="button" onclick="closeModal()"
+                        class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
+                <button type="submit"
+                        class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40">
+                    Save
+                </button>
+            </div>
+        </form>
+
+        <!-- Edit form (sibling, not nested in cards) -->
+        <form id="editForm" method="post" class="hidden flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Name <span class="text-red-400">*</span></label>
+                <input id="editName" name="name" type="text" required maxlength="255"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Description</label>
+                <input id="editDesc" name="description" type="text" maxlength="1000"
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Strategy <span class="text-red-400">*</span></label>
+                <select id="editStrategy" name="strategy" onchange="toggleEditFields()"
+                        class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                    <option value="FIXED_TOKENS">Fixed tokens</option>
+                    <option value="CUSTOM_SEPARATOR">Custom separator</option>
+                </select>
+            </div>
+
+            <!-- FIXED_TOKENS fields -->
+            <div id="editFixedFields" class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400">Chunk size</label>
+                    <input id="editChunkSize" name="chunkSize" type="number" min="10"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-400">Overlap</label>
+                    <input id="editOverlap" name="chunkOverlap" type="number" min="0"
+                           class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                </div>
+            </div>
+
+            <!-- CUSTOM_SEPARATOR fields -->
+            <div id="editSepFields" class="hidden flex-col gap-1.5">
+                <label class="text-xs text-zinc-400">Separator <span class="text-red-400">*</span></label>
+                <input id="editSeparator" name="separator" type="text" placeholder="\nArt."
+                       class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 font-mono focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-1">
+                <button type="button" onclick="closeModal()"
+                        class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
+                <button type="submit"
+                        class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-md shadow-violet-950/40">
+                    Save
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('modalTitle').textContent = 'New Profile';
+        document.getElementById('createForm').classList.remove('hidden');
+        document.getElementById('createForm').classList.add('flex');
+        document.getElementById('editForm').classList.add('hidden');
+        document.getElementById('editForm').classList.remove('flex');
+        toggleCreateFields();
+        showModal();
+        setTimeout(() => document.getElementById('createName').focus(), 50);
+    }
+
+    function openEditFromBtn(btn) {
+        openEdit(btn.dataset.id, btn.dataset.name, btn.dataset.description,
+                 btn.dataset.strategy, btn.dataset.chunkSize, btn.dataset.chunkOverlap,
+                 btn.dataset.separator);
+    }
+
+    function openEdit(id, name, description, strategy, chunkSize, chunkOverlap, separator) {
+        document.getElementById('modalTitle').textContent = 'Edit Profile';
+        document.getElementById('createForm').classList.add('hidden');
+        document.getElementById('createForm').classList.remove('flex');
+
+        const editForm = document.getElementById('editForm');
+        editForm.action = '/settings/chunking-profiles/' + id + '/edit';
+        editForm.classList.remove('hidden');
+        editForm.classList.add('flex');
+
+        document.getElementById('editName').value = name || '';
+        document.getElementById('editDesc').value = description || '';
+        document.getElementById('editStrategy').value = strategy || 'FIXED_TOKENS';
+        document.getElementById('editChunkSize').value = chunkSize || 200;
+        document.getElementById('editOverlap').value = chunkOverlap || 20;
+        document.getElementById('editSeparator').value = separator || '';
+
+        toggleEditFields();
+        showModal();
+        setTimeout(() => document.getElementById('editName').focus(), 50);
+    }
+
+    function showModal() {
+        const m = document.getElementById('modal');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+
+    function closeModal() {
+        const m = document.getElementById('modal');
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+        document.getElementById('createName').value = '';
+        document.getElementById('createDesc').value = '';
+        document.getElementById('createStrategy').value = 'FIXED_TOKENS';
+        document.getElementById('createChunkSize').value = 200;
+        document.getElementById('createOverlap').value = 20;
+        document.getElementById('createSeparator').value = '';
+        toggleCreateFields();
+    }
+
+    function toggleCreateFields() {
+        const strategy = document.getElementById('createStrategy').value;
+        const fixed = document.getElementById('createFixedFields');
+        const sep = document.getElementById('createSepFields');
+        if (strategy === 'FIXED_TOKENS') {
+            fixed.classList.remove('hidden');
+            sep.classList.add('hidden');
+            sep.classList.remove('flex');
+            document.getElementById('createSeparator').removeAttribute('required');
+        } else {
+            fixed.classList.add('hidden');
+            sep.classList.remove('hidden');
+            sep.classList.add('flex');
+            document.getElementById('createSeparator').setAttribute('required', '');
+        }
+    }
+
+    function toggleEditFields() {
+        const strategy = document.getElementById('editStrategy').value;
+        const fixed = document.getElementById('editFixedFields');
+        const sep = document.getElementById('editSepFields');
+        if (strategy === 'FIXED_TOKENS') {
+            fixed.classList.remove('hidden');
+            sep.classList.add('hidden');
+            sep.classList.remove('flex');
+            document.getElementById('editSeparator').removeAttribute('required');
+        } else {
+            fixed.classList.add('hidden');
+            sep.classList.remove('hidden');
+            sep.classList.add('flex');
+            document.getElementById('editSeparator').setAttribute('required', '');
+        }
+    }
+
+    document.getElementById('modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    function openDeleteModal(btn) {
+        document.getElementById('deleteLabel').textContent = btn.dataset.name;
+        document.getElementById('deleteForm').action =
+            '/settings/chunking-profiles/' + btn.dataset.id + '/delete';
+        const m = document.getElementById('deleteModal');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        const m = document.getElementById('deleteModal');
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+    }
+
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>
+
+<!-- ── Delete confirmation modal ── -->
+<div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);">
+    <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-zinc-100 font-medium text-sm">Delete profile?</p>
+            <button onclick="closeDeleteModal()" class="text-zinc-500 hover:text-zinc-300 transition-colors p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <p class="text-zinc-400 text-sm mb-6">
+            Delete <span class="text-zinc-200 font-medium" id="deleteLabel"></span>? This cannot be undone.
+        </p>
+        <form id="deleteForm" method="post" class="flex justify-end gap-3">
+            <button type="button" onclick="closeDeleteModal()"
+                    class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
