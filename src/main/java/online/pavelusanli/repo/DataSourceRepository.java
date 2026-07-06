@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DataSourceRepository extends JpaRepository<DataSource, Long> {
     List<DataSource> findAllByOrderByCreatedAtDesc();
+    boolean existsByChunkCountGreaterThan(int count);
 }
