@@ -395,6 +395,7 @@
         </p>
         <p class="text-zinc-500 text-xs mb-6">All indexed chunks for this source will be permanently deleted.</p>
         <form id="deleteForm" method="post" class="flex justify-end gap-3">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <button type="button" onclick="closeDeleteModal()"
                     class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
             <button type="submit"
