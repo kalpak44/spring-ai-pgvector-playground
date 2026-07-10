@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Ticket Detail (CLI-42)</title>
+<style>
+:root{
+  --bg:#FAF9F5; --surface:#ffffff; --surface-2:#f4f4f5;
+  --border:#e4e4e7; --text-1:#18181b; --text-2:#52525b; --text-3:#a1a1aa;
+  --accent:#7c3aed; --warn-bg:#fde68a; --warn-fg:#78350f;
+  --note-bg:#fde68a; --note-fg:#78350f;
+  --corporate-bg:#ede9fe; --corporate-fg:#5b21b6;
+  --startup-bg:#ccfbf1; --startup-fg:#115e59;
+  --government-bg:#fef3c7; --government-fg:#92400e;
+  --individual-bg:#fce7f3; --individual-fg:#9d174d;
+  --danger:#b91c1c;
+  --shadow:0 1px 4px rgba(0,0,0,.07);
+}
+html.dark{
+  --bg:#09090b; --surface:#141416; --surface-2:#27272a;
+  --border:#27272a; --text-1:#f4f4f5; --text-2:#a1a1aa; --text-3:#71717a;
+  --warn-bg:rgba(245,158,11,.18); --warn-fg:#fbbf24;
+  --note-bg:rgba(245,158,11,.14); --note-fg:#fcd34d;
+  --corporate-bg:rgba(139,92,246,.15); --corporate-fg:#a78bfa;
+  --startup-bg:rgba(20,184,166,.15); --startup-fg:#2dd4bf;
+  --government-bg:rgba(245,158,11,.15); --government-fg:#fbbf24;
+  --individual-bg:rgba(236,72,153,.15); --individual-fg:#f472b6;
+  --danger:#f87171;
+  --shadow:0 1px 4px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text-1);font-family:'Outfit',system-ui,-apple-system,sans-serif;min-height:100vh;padding:36px 16px;transition:background .2s}
+.ticket{background:var(--surface);border:1px solid var(--border);border-radius:18px;max-width:560px;margin:0 auto;padding:26px 30px;box-shadow:var(--shadow)}
+.key{font-family:ui-monospace,'JetBrains Mono',monospace;font-size:12px;color:var(--text-3);letter-spacing:1px}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+h1{font-size:20px;font-weight:600;margin:2px 0 18px}
+.badge{font-size:12px;padding:3px 12px;border-radius:12px;font-weight:500}
+.b-corporate{background:var(--corporate-bg);color:var(--corporate-fg)}
+.b-startup{background:var(--startup-bg);color:var(--startup-fg)}
+.b-government{background:var(--government-bg);color:var(--government-fg)}
+.b-individual{background:var(--individual-bg);color:var(--individual-fg)}
+table{width:100%;border-collapse:collapse;border-top:1px solid var(--border)}
+td{padding:12px 0;vertical-align:top;font-size:14px}
+td.lbl{color:var(--text-2);width:112px}
+.person{display:inline-flex;align-items:center;gap:9px}
+.av{width:26px;height:26px;border-radius:50%;font-size:10px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+.av.v{background:var(--corporate-bg);color:var(--corporate-fg)}
+.av.b{background:#dbeafe;color:#1d4ed8}.av.g{background:#d1fae5;color:#047857}.av.r{background:#fee2e2;color:#b91c1c}
+html.dark .av.b{background:rgba(59,130,246,.2);color:#93c5fd}
+html.dark .av.g{background:rgba(5,150,105,.2);color:#6ee7b7}
+html.dark .av.r{background:rgba(220,38,38,.2);color:#fca5a5}
+.chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:3px 10px 3px 4px;border:1px solid var(--border);border-radius:14px}
+.chip .av{width:19px;height:19px;font-size:9px}
+.addw{width:27px;height:27px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text-2);font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.addw:hover{background:var(--surface-2)}
+.hint{font-size:12px;color:var(--text-3);margin-top:7px;line-height:1.5}
+select,input[type=date]{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-size:14px;color:var(--text-1);font-family:inherit}
+select:focus,input:focus{outline:none;border-color:var(--accent)}
+.prio-ic{font-size:15px;font-weight:700;letter-spacing:-1px;margin-right:8px}
+.p-high{color:#dc2626}.p-mid{color:#d97706}.p-low{color:var(--text-3)}
+html.dark .p-high{color:#f87171}html.dark .p-mid{color:#fbbf24}
+.dl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip-days{font-size:12px;padding:3px 10px;border-radius:9px;background:var(--warn-bg);color:var(--warn-fg)}
+.remind{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text-2);margin-top:10px;flex-wrap:wrap}
+.remind select{padding:5px 9px;font-size:13px}
+.preview{border-top:1px solid var(--border);margin-top:8px;padding-top:14px}
+.preview .p-lbl{font-size:12px;color:var(--text-3);margin-bottom:8px}
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--note-bg);color:var(--note-fg);border-radius:11px;padding:12px 14px;font-size:13px;line-height:1.55}
+.note b{font-weight:600}
+.toggle{position:fixed;bottom:18px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.toggle .sun{display:none}.toggle .moon{display:block}
+html.dark .toggle .sun{display:block}html.dark .toggle .moon{display:none}
+</style>
+<script>
+(function(){try{var t=localStorage.getItem('theme');
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))
+document.documentElement.classList.add('dark');}catch(e){}})();
+</script>
+</head>
+<body>
+
+<div class="ticket">
+  <div class="head">
+    <span class="key">CLI-42</span>
+    <span id="typeBadge" class="badge b-startup">Startup</span>
+  </div>
+  <h1>Onboard NovaPay sandbox</h1>
+
+  <table>
+    <tr>
+      <td class="lbl">Assignee</td>
+      <td><span class="person"><span class="av v">KD</span>Kalina Dimitrova</span></td>
+    </tr>
+    <tr>
+      <td class="lbl">Watchers</td>
+      <td>
+        <div class="chips" id="watchers">
+          <span class="chip"><span class="av b">IV</span>Ivan V.</span>
+          <span class="chip"><span class="av g">MP</span>Maria P.</span>
+          <span class="chip"><span class="av r">AS</span>Alex S.</span>
+          <button class="addw" onclick="addWatcher()" aria-label="Add watcher">+</button>
+        </div>
+        <p class="hint">Watchers get notified on comments, status changes, and deadline reminders.</p>
+      </td>
+    </tr>
+    <tr>
+      <td class="lbl">Priority</td>
+      <td>
+        <span id="prioIc" class="prio-ic p-high">≫</span>
+        <select id="prio" onchange="setPrio()">
+          <option value="high" selected>High</option>
+          <option value="mid">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class="lbl">Client type</td>
+      <td>
+        <select id="ctype" onchange="setType()">
+          <option value="startup" selected>Startup</option>
+          <option value="corporate">Corporate</option>
+          <option value="government">Government</option>
+          <option value="individual">Individual</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class="lbl">Deadline</td>
+      <td>
+        <div class="dl-row">
+          <input type="date" id="deadline" value="2026-07-09" onchange="daysLeft()">
+          <span id="daysChip" class="chip-days">🔔 2 days left</span>
+        </div>
+        <label class="remind">
+          <input type="checkbox" checked> Remind assignee and watchers
+          <select><option>2 days before</option><option>1 day before</option></select>
+        </label>
+      </td>
+    </tr>
+  </table>
+
+  <div class="preview">
+    <p class="p-lbl">Notification preview</p>
+    <div class="note">
+      <span>🔔</span>
+      <span id="noteText"><b>Deadline in 2 days</b> — CLI-42 Onboard NovaPay sandbox is due Jul 9.
+      Sent to Kalina D. and <span id="wCount">3</span> watchers.</span>
+    </div>
+  </div>
+</div>
+
+<button class="toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <span class="sun">☀️</span><span class="moon">🌙</span>
+</button>
+
+<script>
+function toggleTheme(){
+  var d=document.documentElement.classList.toggle('dark');
+  try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}
+}
+var LABELS={startup:'Startup',corporate:'Corporate',government:'Government',individual:'Individual'};
+function setType(){
+  var v=document.getElementById('ctype').value;
+  var b=document.getElementById('typeBadge');
+  b.className='badge b-'+v; b.textContent=LABELS[v];
+}
+function setPrio(){
+  var v=document.getElementById('prio').value;
+  var ic=document.getElementById('prioIc');
+  ic.className='prio-ic p-'+v;
+  ic.textContent=v==='high'?'≫':(v==='mid'?'=':'≪');
+}
+function daysLeft(){
+  var v=document.getElementById('deadline').value;
+  var chip=document.getElementById('daysChip');
+  if(!v){chip.style.display='none';return}
+  var d=Math.ceil((new Date(v)-new Date().setHours(0,0,0,0))/86400000);
+  chip.style.display='';
+  chip.textContent=d<0?(Math.abs(d)+' days overdue'):(d===0?'Due today':'🔔 '+d+(d===1?' day left':' days left'));
+}
+var POOL=[['GT','Georgi T.','b'],['NM','Nina M.','g'],['PS','Petar S.','r']],i=0;
+function addWatcher(){
+  if(i>=POOL.length)return;
+  var w=POOL[i++],chip=document.createElement('span');
+  chip.className='chip';
+  chip.innerHTML='<span class="av '+w[2]+'">'+w[0]+'</span>'+w[1];
+  var btn=document.querySelector('#watchers .addw');
+  btn.parentNode.insertBefore(chip,btn);
+  document.getElementById('wCount').textContent=3+i;
+}
+daysLeft();
+</script>
+
+</body>
+</html>

@@ -2,15 +2,13 @@ package online.pavelusanli.advisors.rag;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import online.pavelusanli.services.HybridSearchService;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
-
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
@@ -22,32 +20,31 @@ import static online.pavelusanli.advisors.expansion.ExpansionQueryAdvisor.ENRICH
 @Builder
 public class RagAdvisor implements BaseAdvisor {
 
-    private VectorStore vectorStore;
+    private static final int DEFAULT_TOP_K = 5;
+
+    private HybridSearchService hybridSearchService;
 
     @Builder.Default
-    private SearchRequest searchRequest = SearchRequest.builder().topK(5).similarityThreshold(0.5).build();
+    private int topK = DEFAULT_TOP_K;
 
     @Getter
     private final int order;
 
-    public static RagAdvisorBuilder build(VectorStore vectorStore) {
-        return new RagAdvisorBuilder().vectorStore(vectorStore);
+    public static RagAdvisorBuilder build(HybridSearchService hybridSearchService) {
+        return new RagAdvisorBuilder().hybridSearchService(hybridSearchService);
     }
 
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
-        String originalUserQuestion = chatClientRequest.prompt().getUserMessage().getText();
-        String queryToRag = chatClientRequest.context().getOrDefault(ENRICHED_QUESTION, originalUserQuestion).toString();
+        String originalQuestion = chatClientRequest.prompt().getUserMessage().getText();
+        String queryToRag = chatClientRequest.context()
+                .getOrDefault(ENRICHED_QUESTION, originalQuestion).toString();
 
-        List<Document> documents = vectorStore.similaritySearch(
-                SearchRequest.from(searchRequest).query(queryToRag).topK(searchRequest.getTopK() * 2).build());
+        List<Document> documents = hybridSearchService.search(queryToRag, topK);
 
         if (documents.isEmpty()) {
             return chatClientRequest;
         }
-
-        BM25RerankEngine rerankEngine = BM25RerankEngine.builder().build();
-        documents = rerankEngine.rerank(documents, queryToRag, searchRequest.getTopK());
 
         AtomicInteger idx = new AtomicInteger(1);
         StringBuilder context = new StringBuilder();
@@ -61,7 +58,7 @@ public class RagAdvisor implements BaseAdvisor {
             context.append("\n    \"").append(doc.getText().strip()).append("\"\n\n");
         }
 
-        String augmented = context + "User question: " + originalUserQuestion;
+        String augmented = context + "User question: " + originalQuestion;
 
         return chatClientRequest.mutate()
                 .prompt(chatClientRequest.prompt().augmentUserMessage(augmented))

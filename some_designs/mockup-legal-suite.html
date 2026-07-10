@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Legal Practice Suite</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   THEME TOKENS
+   ─ Every color in the layout resolves through one of these vars.
+   ─ .dark class on <html> replaces the values; no rule duplicates.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#FAF9F5; --surface:#ffffff; --surface-2:#f4f4f5;
+  --border:#e4e4e7; --border-strong:#d4d4d8;
+  --text-1:#18181b; --text-2:#52525b; --text-3:#a1a1aa;
+  --accent:#7c3aed; --accent-soft:#ede9fe; --accent-ink:#5b21b6;
+  --danger:#dc2626; --danger-soft:#fee2e2;
+  --warn:#d97706;   --warn-soft:#fef3c7;   --warn-ink:#78350f;
+  --ok:#059669;     --ok-soft:#d1fae5;     --ok-ink:#065f46;
+  --info:#0369a1;   --info-soft:#e0f2fe;
+  /* client-type badges (match the app's ClientType enum) */
+  --corp-bg:#ede9fe; --corp-fg:#5b21b6;
+  --startup-bg:#ccfbf1; --startup-fg:#115e59;
+  --gov-bg:#fef3c7; --gov-fg:#92400e;
+  --ind-bg:#fce7f3; --ind-fg:#9d174d;
+  --shadow:0 1px 3px rgba(0,0,0,.05);
+  --shadow-lg:0 4px 20px rgba(0,0,0,.06);
+}
+html.dark{
+  --bg:#09090b; --surface:#141416; --surface-2:#1f1f22;
+  --border:#27272a; --border-strong:#3f3f46;
+  --text-1:#f4f4f5; --text-2:#a1a1aa; --text-3:#71717a;
+  --accent:#a78bfa; --accent-soft:rgba(139,92,246,.15); --accent-ink:#c4b5fd;
+  --danger:#f87171; --danger-soft:rgba(220,38,38,.15);
+  --warn:#fbbf24;   --warn-soft:rgba(245,158,11,.15); --warn-ink:#fcd34d;
+  --ok:#34d399;     --ok-soft:rgba(5,150,105,.18);    --ok-ink:#6ee7b7;
+  --info:#38bdf8;   --info-soft:rgba(2,132,199,.18);
+  --corp-bg:rgba(139,92,246,.15); --corp-fg:#c4b5fd;
+  --startup-bg:rgba(20,184,166,.15); --startup-fg:#5eead4;
+  --gov-bg:rgba(245,158,11,.15); --gov-fg:#fcd34d;
+  --ind-bg:rgba(236,72,153,.15); --ind-fg:#f9a8d4;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+  --shadow-lg:0 4px 20px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOUNDATIONS
+   ═══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--text-1);
+  font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-size:14px; line-height:1.5; transition:background .2s;
+}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font-family:inherit;color:inherit}
+a{color:inherit}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP SHELL
+   ═══════════════════════════════════════════════════════════════ */
+.app{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+
+.brandbar{
+  display:flex;align-items:center;gap:14px;
+  padding:0 0 20px;
+}
+.brandbar .logo{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:600;font-size:15px;letter-spacing:.5px;
+}
+.brandbar .brand-name{font-size:15px;font-weight:600}
+.brandbar .brand-sub{font-size:12px;color:var(--text-3)}
+.brandbar .who{margin-left:auto;font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:10px}
+.brandbar .who .av{width:28px;height:28px;border-radius:50%;background:var(--corp-bg);color:var(--corp-fg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+
+/* ── tabs ─────────────────────────────────────────────────── */
+.tabs{
+  display:flex;gap:2px;
+  padding:4px;background:var(--surface-2);
+  border:1px solid var(--border);border-radius:12px;
+  width:fit-content;margin-bottom:22px;
+}
+.tab{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:8px;
+  font-size:13px;font-weight:500;color:var(--text-2);
+  transition:all .15s;
+}
+.tab:hover{color:var(--text-1)}
+.tab.on{background:var(--surface);color:var(--text-1);box-shadow:var(--shadow)}
+.tab svg{width:15px;height:15px}
+
+.panel{display:none}
+.panel.on{display:block}
+
+/* ── shared components ────────────────────────────────────── */
+.page-head{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:18px;flex-wrap:wrap;
+}
+.page-head h2{font-size:16px;font-weight:600}
+.page-head .sub{font-size:13px;color:var(--text-2)}
+.page-head .grow{flex:1}
+
+.field{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:0 12px;height:36px;
+  min-width:220px;
+}
+.field:focus-within{border-color:var(--accent)}
+.field svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0}
+.field input{
+  flex:1;border:none;outline:none;background:none;
+  font-size:13px;color:var(--text-1);height:100%;
+}
+.field input::placeholder{color:var(--text-3)}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 14px;height:36px;border-radius:9px;
+  font-size:13px;font-weight:500;transition:all .15s;
+  border:1px solid var(--border);background:var(--surface);color:var(--text-1);
+}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn svg{width:15px;height:15px}
+
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12px;padding:3px 10px;border-radius:12px;
+  font-weight:500;line-height:1.4;white-space:nowrap;
+}
+.chip.corp{background:var(--corp-bg);color:var(--corp-fg)}
+.chip.startup{background:var(--startup-bg);color:var(--startup-fg)}
+.chip.gov{background:var(--gov-bg);color:var(--gov-fg)}
+.chip.ind{background:var(--ind-bg);color:var(--ind-fg)}
+.chip.accent{background:var(--accent-soft);color:var(--accent-ink)}
+.chip.warn{background:var(--warn-soft);color:var(--warn-ink)}
+.chip.ok{background:var(--ok-soft);color:var(--ok-ink)}
+.chip.muted{background:var(--surface-2);color:var(--text-2)}
+.chip svg{width:12px;height:12px}
+
+.av{
+  width:24px;height:24px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;
+}
+.av-stack{display:flex}
+.av-stack .av{border:2px solid var(--surface)}
+.av-stack .av+.av{margin-left:-7px}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL 1 — NOTES & MEETINGS
+   Chronological feed. Meetings are rich cards; quick notes
+   are compact amber cards (photos of subpoenas, ad-hoc jots).
+   ═══════════════════════════════════════════════════════════════ */
+.date-head{
+  font-size:11px;font-weight:600;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--text-3);
+  margin:22px 0 10px 4px;
+}
+.date-head:first-child{margin-top:0}
+
+.meeting{margin-bottom:12px}
+.meeting .m-head{
+  display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;
+}
+.meeting .m-head .t{flex:1;min-width:0}
+.meeting .m-head .t h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.meeting .m-head .t .meta{font-size:12px;color:var(--text-3);display:flex;gap:10px;flex-wrap:wrap}
+.meeting .m-head .t .meta svg{width:12px;height:12px;vertical-align:-2px;margin-right:3px}
+
+.m-summary{
+  background:var(--surface-2);border-radius:10px;
+  padding:12px 14px;font-size:13px;color:var(--text-2);
+  line-height:1.6;margin-bottom:12px;
+  border-left:2px solid var(--accent);
+}
+.m-summary .lbl{
+  font-size:11px;font-weight:600;color:var(--accent-ink);
+  text-transform:uppercase;letter-spacing:.5px;
+  display:flex;align-items:center;gap:5px;margin-bottom:6px;
+}
+.m-summary .lbl svg{width:12px;height:12px}
+html.dark .m-summary .lbl{color:var(--accent)}
+
+.actions-list{margin-bottom:12px}
+.actions-list .item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:6px 0;font-size:13px;color:var(--text-1);
+}
+.actions-list .cb{
+  width:16px;height:16px;border:1.5px solid var(--border-strong);
+  border-radius:4px;flex-shrink:0;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;
+}
+.actions-list .cb.done{background:var(--accent);border-color:var(--accent)}
+.actions-list .cb.done svg{color:#fff;width:11px;height:11px}
+.actions-list .cb svg{width:0;height:0}
+.actions-list .item.done{color:var(--text-3);text-decoration:line-through}
+
+.m-foot{
+  display:flex;align-items:center;gap:12px;
+  padding-top:12px;border-top:1px solid var(--border);
+}
+.m-foot .attendees{font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:8px}
+.m-foot .spacer{flex:1}
+.icon-btn{
+  width:32px;height:32px;border-radius:8px;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--text-2);transition:all .15s;
+}
+.icon-btn:hover{background:var(--surface-2);color:var(--text-1)}
+.icon-btn svg{width:15px;height:15px}
+
+/* quick note — deliberately different visual weight from a meeting card */
+.quicknote{
+  background:var(--warn-soft);border-radius:12px;
+  padding:12px 14px;margin-bottom:12px;
+  border-left:3px solid var(--warn);
+}
+.quicknote .qn-tag{
+  font-size:10px;font-weight:600;color:var(--warn-ink);
+  text-transform:uppercase;letter-spacing:.5px;
+}
+html.dark .quicknote{background:var(--warn-soft)}
+html.dark .quicknote .qn-tag{color:var(--warn-ink)}
+.quicknote h4{font-size:13px;font-weight:600;margin:4px 0 3px;color:var(--text-1)}
+.quicknote p{font-size:12px;color:var(--text-2);line-height:1.5}
+.quicknote .qn-foot{
+  display:flex;align-items:center;gap:10px;margin-top:8px;
+  font-size:11px;color:var(--text-3);
+}
+.quicknote .qn-foot svg{width:12px;height:12px}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL 2 — TEMPLATES & CONTRACTS
+   Grid of templates on top, table of generated contracts below.
+   ═══════════════════════════════════════════════════════════════ */
+.templates-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;margin-bottom:32px;
+}
+@media(max-width:820px){.templates-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.templates-grid{grid-template-columns:1fr}}
+
+.tpl{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:14px;box-shadow:var(--shadow);
+  transition:all .15s;cursor:pointer;
+}
+.tpl:hover{border-color:var(--border-strong);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.tpl-icon{
+  width:38px;height:38px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;
+}
+.tpl-icon svg{width:18px;height:18px}
+.tpl-icon.corp{background:var(--corp-bg);color:var(--corp-fg)}
+.tpl-icon.startup{background:var(--startup-bg);color:var(--startup-fg)}
+.tpl-icon.gov{background:var(--gov-bg);color:var(--gov-fg)}
+.tpl-icon.ind{background:var(--ind-bg);color:var(--ind-fg)}
+.tpl h3{font-size:13.5px;font-weight:600;margin-bottom:2px;line-height:1.35}
+.tpl .tpl-meta{font-size:11.5px;color:var(--text-3);display:flex;gap:6px;align-items:center;margin-bottom:10px}
+.tpl-cta{display:flex;gap:6px}
+.tpl-cta button{
+  flex:1;padding:6px 0;border-radius:6px;font-size:12px;font-weight:500;
+  background:var(--surface-2);color:var(--text-2);transition:all .15s;
+}
+.tpl-cta button:hover{background:var(--accent-soft);color:var(--accent-ink)}
+.tpl-cta button.primary{background:var(--accent);color:#fff}
+.tpl-cta button.primary:hover{filter:brightness(1.08)}
+
+/* section divider */
+.section-lbl{
+  font-size:12px;font-weight:600;letter-spacing:.3px;
+  color:var(--text-2);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-lbl .count{
+  font-size:11px;color:var(--text-3);font-weight:400;
+}
+
+/* contracts table */
+.contracts{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;box-shadow:var(--shadow);
+}
+.contracts .row{
+  display:grid;grid-template-columns:1.5fr 1fr auto auto auto;
+  gap:16px;align-items:center;padding:12px 16px;
+  border-top:1px solid var(--border);font-size:13px;
+}
+.contracts .row:first-child{border-top:none}
+.contracts .row.head{
+  background:var(--surface-2);
+  font-size:11px;font-weight:600;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:.5px;padding:8px 16px;
+}
+.contracts .row .doc{display:flex;align-items:center;gap:10px;min-width:0}
+.contracts .row .doc svg{width:15px;height:15px;color:var(--text-3);flex-shrink:0}
+.contracts .row .doc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contracts .row .client{color:var(--text-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contracts .row .date{color:var(--text-3);font-size:12px}
+@media(max-width:640px){
+  .contracts .row{grid-template-columns:1fr auto}
+  .contracts .row .client,.contracts .row .date{display:none}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL 3 — COURT ANNOUNCEMENTS
+   Date-grouped agenda. Deadlines & hearings colored by type.
+   ═══════════════════════════════════════════════════════════════ */
+.urgent-strip{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;background:var(--danger-soft);
+  border:1px solid var(--danger);border-left-width:3px;
+  border-radius:10px;margin-bottom:20px;font-size:13px;
+}
+.urgent-strip svg{width:16px;height:16px;color:var(--danger);flex-shrink:0}
+.urgent-strip b{color:var(--danger);font-weight:600}
+.urgent-strip span{color:var(--text-2)}
+
+.agenda-group{margin-bottom:22px}
+.agenda-head{
+  display:flex;align-items:baseline;gap:10px;
+  margin-bottom:10px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.agenda-head h3{font-size:13px;font-weight:600;color:var(--text-1)}
+.agenda-head .count{font-size:12px;color:var(--text-3)}
+
+.announcement{
+  display:grid;grid-template-columns:56px 1fr auto;
+  gap:14px;align-items:start;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:14px 16px;margin-bottom:8px;
+  box-shadow:var(--shadow);transition:all .15s;
+}
+.announcement:hover{border-color:var(--border-strong)}
+.announcement.urgent{border-left:3px solid var(--danger)}
+.announcement .when{text-align:center}
+.announcement .when .day{font-size:20px;font-weight:600;line-height:1;color:var(--text-1)}
+.announcement .when .mon{font-size:10px;text-transform:uppercase;color:var(--text-3);letter-spacing:.5px;margin-top:2px}
+.announcement .when .time{
+  display:block;margin-top:5px;font-size:11px;
+  color:var(--accent-ink);font-weight:500;
+}
+html.dark .announcement .when .time{color:var(--accent)}
+.announcement .body{min-width:0}
+.announcement .body .type-row{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;
+}
+.announcement .body h4{font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.35}
+.announcement .body .details{font-size:12px;color:var(--text-2);line-height:1.55}
+.announcement .body .details svg{width:11px;height:11px;vertical-align:-1px;margin-right:3px;color:var(--text-3)}
+.announcement .actions{display:flex;gap:2px}
+@media(max-width:560px){
+  .announcement{grid-template-columns:44px 1fr;gap:10px}
+  .announcement .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THEME TOGGLE
+   ═══════════════════════════════════════════════════════════════ */
+.toggle{
+  position:fixed;bottom:20px;right:20px;z-index:60;
+  width:42px;height:42px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--border);
+  box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-2);transition:all .15s;
+}
+.toggle:hover{color:var(--text-1)}
+.toggle svg{width:16px;height:16px}
+.toggle .sun{display:none}
+html.dark .toggle .sun{display:block}
+html.dark .toggle .moon{display:none}
+
+/* utility: hide scrollbar for horizontal tab overflow if it happens */
+.tabs::-webkit-scrollbar{display:none}
+</style>
+<script>
+/* Pre-paint: read stored theme (or system pref) BEFORE first render
+   to prevent the light-flash-then-dark flicker on load. */
+(function(){try{
+  var t=localStorage.getItem('theme');
+  if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))
+    document.documentElement.classList.add('dark');
+}catch(e){}})();
+</script>
+</head>
+<body>
+
+<!-- ═════════════════════════════════════════════════════════════
+     ICON LIBRARY — defined once, referenced with <use href="#..."/>
+     Standard SVG sprite pattern. currentColor lets us theme icons
+     via the parent's `color` property, no per-icon fills needed.
+     ═════════════════════════════════════════════════════════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></symbol>
+  <symbol id="ic-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="ic-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="ic-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="ic-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3"/></symbol>
+  <symbol id="ic-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></symbol>
+  <symbol id="ic-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></symbol>
+  <symbol id="ic-sig" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17s4-8 9-8 5 6 9 6"/><path d="M3 21h18"/></symbol>
+  <symbol id="ic-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4 7l8-3 8 3M6 21h12"/><path d="m4 7-3 6a4 4 0 0 0 6 0zM20 7l3 6a4 4 0 0 1-6 0z"/></symbol>
+  <symbol id="ic-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="ic-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="ic-play" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4v16l14-8z"/></symbol>
+  <symbol id="ic-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="ic-attach" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 10-9 9a5.7 5.7 0 0 1-8-8L13 2a4 4 0 0 1 6 6l-9 9a2 2 0 0 1-3-3l8-8"/></symbol>
+  <symbol id="ic-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="ic-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-2 6-6 2 6 2 2 6 2-6 6-2-6-2zM19 3v4M17 5h4M19 17v4M17 19h4"/></symbol>
+  <symbol id="ic-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="ic-mic-solid" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2" width="6" height="12" rx="3"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 10a7 7 0 0 1-14 0M12 19v3"/></symbol>
+  <symbol id="ic-notes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 15h6M9 11h3"/></symbol>
+  <symbol id="ic-files" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M15 2v5h5M9 21V9M4 13h5"/></symbol>
+  <symbol id="ic-gavel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 12-8.5 8.5a2.12 2.12 0 0 1-3-3L11 9M15 4l6 6M13 6l6 6M9 8l6 6"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+  <symbol id="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="ic-arrow-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></symbol>
+</defs>
+</svg>
+
+<div class="app">
+
+  <!-- ═══ Brand bar ═══════════════════════════════════════════ -->
+  <div class="brandbar">
+    <div class="logo">LP</div>
+    <div>
+      <div class="brand-name">Legal Practice Suite</div>
+      <div class="brand-sub">Petrov, Ivanova & Partners</div>
+    </div>
+    <div class="who">
+      <span>Georgi Petrov</span>
+      <span class="av">GP</span>
+    </div>
+  </div>
+
+  <!-- ═══ Tabs ════════════════════════════════════════════════ -->
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-tab="meetings" onclick="showTab('meetings')">
+      <svg><use href="#ic-mic"/></svg> Notes &amp; Meetings
+    </button>
+    <button class="tab" data-tab="templates" onclick="showTab('templates')">
+      <svg><use href="#ic-files"/></svg> Templates &amp; Contracts
+    </button>
+    <button class="tab" data-tab="court" onclick="showTab('court')">
+      <svg><use href="#ic-scale"/></svg> Court Announcements
+    </button>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════
+       PANEL 1 · NOTES & MEETINGS
+       ═════════════════════════════════════════════════════════ -->
+  <div class="panel on" id="p-meetings">
+    <div class="page-head">
+      <div>
+        <h2>Meetings &amp; Notes</h2>
+        <div class="sub">Recordings summarized by AI, and quick notes from the day</div>
+      </div>
+      <div class="grow"></div>
+      <div class="field">
+        <svg><use href="#ic-search"/></svg>
+        <input placeholder="Search meetings, notes, action items">
+      </div>
+      <button class="btn"><svg><use href="#ic-filter"/></svg> Client</button>
+      <button class="btn primary"><svg><use href="#ic-mic-solid"/></svg> New recording</button>
+    </div>
+
+    <!-- Today -->
+    <div class="date-head">Today · Jul 7</div>
+
+    <div class="card meeting">
+      <div class="m-head">
+        <div class="t">
+          <h3>Strategy call — Novastar Holdings AD</h3>
+          <div class="meta">
+            <span><svg><use href="#ic-clock"/></svg> 10:30 · 47 min</span>
+            <span class="chip corp">Corporate</span>
+            <span><svg><use href="#ic-cal"/></svg> Case 1245/2024</span>
+          </div>
+        </div>
+        <button class="icon-btn" title="More"><svg><use href="#ic-more"/></svg></button>
+      </div>
+
+      <div class="m-summary">
+        <div class="lbl"><svg><use href="#ic-sparkles"/></svg> AI Summary</div>
+        Client wants to proceed with acquisition of Beta Ltd's minority shares. Concerns raised about the escrow structure in section 4.2 of the draft SPA. Board approval expected by Jul 15. Beta's counsel to be contacted directly on due-diligence gaps.
+      </div>
+
+      <div class="actions-list">
+        <div class="item done">
+          <span class="cb done" onclick="toggle(this)"><svg><use href="#ic-check"/></svg></span>
+          Send revised SPA draft with escrow amendments
+        </div>
+        <div class="item">
+          <span class="cb" onclick="toggle(this)"><svg><use href="#ic-check"/></svg></span>
+          Schedule call with Beta's legal team for Jul 10
+        </div>
+        <div class="item">
+          <span class="cb" onclick="toggle(this)"><svg><use href="#ic-check"/></svg></span>
+          Draft board resolution template — link to case 1245/2024
+        </div>
+      </div>
+
+      <div class="m-foot">
+        <div class="attendees">
+          <div class="av-stack">
+            <span class="av" style="background:var(--corp-bg);color:var(--corp-fg)">GP</span>
+            <span class="av" style="background:var(--ind-bg);color:var(--ind-fg)">IV</span>
+            <span class="av" style="background:var(--startup-bg);color:var(--startup-fg)">MP</span>
+          </div>
+          <span>3 attendees · client + 2 partners</span>
+        </div>
+        <div class="spacer"></div>
+        <button class="icon-btn" title="Play recording"><svg><use href="#ic-play"/></svg></button>
+        <button class="icon-btn" title="Download transcript"><svg><use href="#ic-download"/></svg></button>
+      </div>
+    </div>
+
+    <div class="quicknote">
+      <div class="qn-tag">Photo · court summons</div>
+      <h4>Subpoena scan — case 1301/2024</h4>
+      <p>Received via post. Response due Jul 11. Photographed for the file, original in physical case folder.</p>
+      <div class="qn-foot">
+        <span><svg><use href="#ic-attach"/></svg> summons-1301.jpg</span>
+        <span>· 2 hours ago</span>
+      </div>
+    </div>
+
+    <!-- Yesterday -->
+    <div class="date-head">Yesterday · Jul 6</div>
+
+    <div class="card meeting">
+      <div class="m-head">
+        <div class="t">
+          <h3>Consultation — Ivanov divorce settlement</h3>
+          <div class="meta">
+            <span><svg><use href="#ic-clock"/></svg> 15:00 · 32 min</span>
+            <span class="chip ind">Individual</span>
+            <span><svg><use href="#ic-cal"/></svg> Case 887/2024</span>
+          </div>
+        </div>
+        <button class="icon-btn" title="More"><svg><use href="#ic-more"/></svg></button>
+      </div>
+
+      <div class="m-summary">
+        <div class="lbl"><svg><use href="#ic-sparkles"/></svg> AI Summary</div>
+        Discussed division of the family apartment in Sofia and the summer property in Bansko. Mrs. Ivanova prefers to retain the Sofia apartment; open to relinquishing rights to the Bansko property in exchange. Child custody terms already agreed in principle.
+      </div>
+
+      <div class="actions-list">
+        <div class="item">
+          <span class="cb" onclick="toggle(this)"><svg><use href="#ic-check"/></svg></span>
+          Prepare property valuation request for both estates
+        </div>
+        <div class="item">
+          <span class="cb" onclick="toggle(this)"><svg><use href="#ic-check"/></svg></span>
+          Draft revised settlement agreement — send by Jul 10
+        </div>
+      </div>
+
+      <div class="m-foot">
+        <div class="attendees">
+          <div class="av-stack">
+            <span class="av" style="background:var(--corp-bg);color:var(--corp-fg)">GP</span>
+            <span class="av" style="background:var(--ind-bg);color:var(--ind-fg)">EI</span>
+          </div>
+          <span>2 attendees</span>
+        </div>
+        <div class="spacer"></div>
+        <button class="icon-btn"><svg><use href="#ic-play"/></svg></button>
+        <button class="icon-btn"><svg><use href="#ic-download"/></svg></button>
+      </div>
+    </div>
+
+    <div class="quicknote">
+      <div class="qn-tag">Reminder</div>
+      <h4>Appeal deadline — case 1103/2024</h4>
+      <p>Voluntary compliance response window closes Jul 12. Coordinate with Maria before filing.</p>
+      <div class="qn-foot"><span>· Yesterday, 17:20</span></div>
+    </div>
+
+    <!-- Older -->
+    <div class="date-head">Jul 5</div>
+
+    <div class="card meeting">
+      <div class="m-head">
+        <div class="t">
+          <h3>Internal — pending caseload review</h3>
+          <div class="meta">
+            <span><svg><use href="#ic-clock"/></svg> 11:00 · 18 min</span>
+            <span class="chip muted">Internal</span>
+          </div>
+        </div>
+        <button class="icon-btn"><svg><use href="#ic-more"/></svg></button>
+      </div>
+      <div class="m-summary">
+        <div class="lbl"><svg><use href="#ic-sparkles"/></svg> AI Summary</div>
+        Reviewed the 14 open matters this week. Two need extra research support — Petrov v. Municipality (tax) and the Beta acquisition. Rebalanced load across partners.
+      </div>
+      <div class="m-foot">
+        <div class="attendees">
+          <div class="av-stack">
+            <span class="av" style="background:var(--corp-bg);color:var(--corp-fg)">GP</span>
+            <span class="av" style="background:var(--ind-bg);color:var(--ind-fg)">IV</span>
+            <span class="av" style="background:var(--startup-bg);color:var(--startup-fg)">MP</span>
+            <span class="av" style="background:var(--gov-bg);color:var(--gov-fg)">NS</span>
+          </div>
+          <span>Full team</span>
+        </div>
+        <div class="spacer"></div>
+        <button class="icon-btn"><svg><use href="#ic-play"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════
+       PANEL 2 · TEMPLATES & CONTRACTS
+       ═════════════════════════════════════════════════════════ -->
+  <div class="panel" id="p-templates">
+    <div class="page-head">
+      <div>
+        <h2>Templates &amp; Contracts</h2>
+        <div class="sub">Reusable document templates and recently generated contracts</div>
+      </div>
+      <div class="grow"></div>
+      <div class="field">
+        <svg><use href="#ic-search"/></svg>
+        <input placeholder="Search templates">
+      </div>
+      <button class="btn"><svg><use href="#ic-upload"/></svg> Upload</button>
+      <button class="btn primary"><svg><use href="#ic-plus"/></svg> New template</button>
+    </div>
+
+    <div class="section-lbl">Template library <span class="count">· 6 templates</span></div>
+
+    <div class="templates-grid">
+      <div class="tpl">
+        <div class="tpl-icon corp"><svg><use href="#ic-file"/></svg></div>
+        <h3>Legal Services Agreement</h3>
+        <div class="tpl-meta"><span class="chip corp">Contracts</span> <span>· Used 47×</span></div>
+        <div class="tpl-cta">
+          <button><svg><use href="#ic-eye"/></svg> Preview</button>
+          <button class="primary">Use</button>
+        </div>
+      </div>
+
+      <div class="tpl">
+        <div class="tpl-icon ind"><svg><use href="#ic-sig"/></svg></div>
+        <h3>Power of Attorney — Representation</h3>
+        <div class="tpl-meta"><span class="chip ind">Authority</span> <span>· Used 23×</span></div>
+        <div class="tpl-cta">
+          <button><svg><use href="#ic-eye"/></svg> Preview</button>
+          <button class="primary">Use</button>
+        </div>
+      </div>
+
+      <div class="tpl">
+        <div class="tpl-icon gov"><svg><use href="#ic-mail"/></svg></div>
+        <h3>Voluntary Compliance Notice</h3>
+        <div class="tpl-meta"><span class="chip gov">Letters</span> <span>· Used 12×</span></div>
+        <div class="tpl-cta">
+          <button><svg><use href="#ic-eye"/></svg> Preview</button>
+          <button class="primary">Use</button>
+        </div>
+      </div>
+
+      <div class="tpl">
+        <div class="tpl-icon corp"><svg><use href="#ic-file"/></svg></div>
+        <h3>Office Lease Agreement</h3>
+        <div class="tpl-meta"><span class="chip corp">Contracts</span> <span>· Used 18×</span></div>
+        <div class="tpl-cta">
+          <button><svg><use href="#ic-eye"/></svg> Preview</button>
+          <button class="primary">Use</button>
+        </div>
+      </div>
+
+      <div class="tpl">
+        <div class="tpl-icon startup"><svg><use href="#ic-scale"/></svg></div>
+        <h3>Statement of Claim</h3>
+        <div class="tpl-meta"><span class="chip startup">Petitions</span> <span>· Used 8×</span></div>
+        <div class="tpl-cta">
+          <button><svg><use href="#ic-eye"/></svg> Preview</button>
+          <button class="primary">Use</button>
+        </div>
+      </div>
+
+      <div class="tpl">
+        <div class="tpl-icon corp"><svg><use href="#ic-file"/></svg></div>
+        <h3>Non-disclosure Agreement</h3>
+        <div class="tpl-meta"><span class="chip corp">Contracts</span> <span>· Used 34×</span></div>
+        <div class="tpl-cta">
+          <button><svg><use href="#ic-eye"/></svg> Preview</button>
+          <button class="primary">Use</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-lbl">Recent contracts <span class="count">· generated from templates</span></div>
+
+    <div class="contracts">
+      <div class="row head">
+        <div>Document</div>
+        <div>Client</div>
+        <div>Status</div>
+        <div>Date</div>
+        <div></div>
+      </div>
+      <div class="row">
+        <div class="doc"><svg><use href="#ic-file"/></svg><span>Novastar Acquisition Terms</span></div>
+        <div class="client">Novastar Holdings AD</div>
+        <div><span class="chip accent">Sent</span></div>
+        <div class="date">2 days ago</div>
+        <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+      </div>
+      <div class="row">
+        <div class="doc"><svg><use href="#ic-file"/></svg><span>Consultancy Agreement — Beta</span></div>
+        <div class="client">Beta Consulting Ltd</div>
+        <div><span class="chip ok">Signed</span></div>
+        <div class="date">Jul 3</div>
+        <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+      </div>
+      <div class="row">
+        <div class="doc"><svg><use href="#ic-file"/></svg><span>Ivanov Retainer Agreement</span></div>
+        <div class="client">E. Ivanova (individual)</div>
+        <div><span class="chip muted">Draft</span></div>
+        <div class="date">Jul 5</div>
+        <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+      </div>
+      <div class="row">
+        <div class="doc"><svg><use href="#ic-file"/></svg><span>Office Lease Amendment</span></div>
+        <div class="client">Sofia Municipality</div>
+        <div><span class="chip ok">Signed</span></div>
+        <div class="date">Jun 28</div>
+        <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+      </div>
+      <div class="row">
+        <div class="doc"><svg><use href="#ic-file"/></svg><span>NDA — TechFlow partnership</span></div>
+        <div class="client">TechFlow OOD</div>
+        <div><span class="chip warn">Awaiting signature</span></div>
+        <div class="date">Jun 25</div>
+        <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════
+       PANEL 3 · COURT ANNOUNCEMENTS
+       ═════════════════════════════════════════════════════════ -->
+  <div class="panel" id="p-court">
+    <div class="page-head">
+      <div>
+        <h2>Court Announcements</h2>
+        <div class="sub">Hearings, deadlines, subpoenas, and public notices</div>
+      </div>
+      <div class="grow"></div>
+      <div class="field">
+        <svg><use href="#ic-search"/></svg>
+        <input placeholder="Search case, court, or party">
+      </div>
+      <button class="btn"><svg><use href="#ic-filter"/></svg> Type</button>
+      <button class="btn primary"><svg><use href="#ic-plus"/></svg> Add announcement</button>
+    </div>
+
+    <div class="urgent-strip">
+      <svg><use href="#ic-alert"/></svg>
+      <span><b>2 urgent items today</b> — hearing at Sofia District Court (10:00) and counterclaim response due end of day.</span>
+    </div>
+
+    <!-- Today -->
+    <div class="agenda-group">
+      <div class="agenda-head">
+        <h3>Today</h3>
+        <span class="count">Jul 7 · 2 items</span>
+      </div>
+
+      <div class="announcement urgent">
+        <div class="when">
+          <div class="day">07</div>
+          <div class="mon">Jul</div>
+          <div class="time">10:00</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip accent"><svg><use href="#ic-gavel"/></svg> Hearing</span>
+            <span class="chip corp">Corporate</span>
+            <span class="chip muted">Case 1245/2024</span>
+          </div>
+          <h4>Novastar Holdings AD v. Beta Ltd — first instance</h4>
+          <div class="details">
+            <svg><use href="#ic-scale"/></svg> Sofia District Court, room 3 · 
+            <svg><use href="#ic-notes"/></svg> Statement of position submitted Jul 4 ·
+            representing plaintiff (GP)
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn" title="Set reminder"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+
+      <div class="announcement urgent">
+        <div class="when">
+          <div class="day">07</div>
+          <div class="mon">Jul</div>
+          <div class="time">by 23:59</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip warn"><svg><use href="#ic-clock"/></svg> Deadline</span>
+            <span class="chip ind">Individual</span>
+            <span class="chip muted">Case 887/2024</span>
+          </div>
+          <h4>Response to counterclaim — Ivanov divorce</h4>
+          <div class="details">
+            <svg><use href="#ic-attach"/></svg> Draft response ready ·
+            <svg><use href="#ic-mail"/></svg> Must file via e-portal
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- This week -->
+    <div class="agenda-group">
+      <div class="agenda-head">
+        <h3>This week</h3>
+        <span class="count">Jul 8 – Jul 13 · 4 items</span>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">09</div>
+          <div class="mon">Jul</div>
+          <div class="time">14:30</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip accent"><svg><use href="#ic-gavel"/></svg> Hearing</span>
+            <span class="chip gov">Government</span>
+            <span class="chip muted">Case 442/2024</span>
+          </div>
+          <h4>Petrov v. Municipality — tax appeal</h4>
+          <div class="details">
+            <svg><use href="#ic-scale"/></svg> Regional Court Plovdiv, room 12 · witness testimony scheduled
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">10</div>
+          <div class="mon">Jul</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip warn"><svg><use href="#ic-clock"/></svg> Deadline</span>
+            <span class="chip corp">Corporate</span>
+            <span class="chip muted">Case 1103/2024</span>
+          </div>
+          <h4>Appeal filing — Voluntary compliance response</h4>
+          <div class="details">
+            <svg><use href="#ic-mail"/></svg> Response letter drafted from template
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">11</div>
+          <div class="mon">Jul</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip ind"><svg><use href="#ic-mail"/></svg> Subpoena</span>
+            <span class="chip ind">Individual</span>
+            <span class="chip muted">Case 1301/2024</span>
+          </div>
+          <h4>Witness subpoena — response required</h4>
+          <div class="details">
+            <svg><use href="#ic-attach"/></svg> Received Jul 7 (photo in Meetings tab)
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">12</div>
+          <div class="mon">Jul</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip startup"><svg><use href="#ic-notes"/></svg> Public notice</span>
+            <span class="chip startup">Non-profit</span>
+            <span class="chip muted">Case 998/2024</span>
+          </div>
+          <h4>Registry change — Green Foundation</h4>
+          <div class="details">Publication in State Gazette, verification required</div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Later this month -->
+    <div class="agenda-group">
+      <div class="agenda-head">
+        <h3>Later this month</h3>
+        <span class="count">Jul 14 – Jul 31 · 3 items</span>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">18</div>
+          <div class="mon">Jul</div>
+          <div class="time">09:00</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip accent"><svg><use href="#ic-gavel"/></svg> Hearing</span>
+            <span class="chip corp">Corporate</span>
+            <span class="chip muted">Case 55/2024</span>
+          </div>
+          <h4>Supreme Court of Cassation — final appeal</h4>
+          <div class="details">
+            <svg><use href="#ic-scale"/></svg> Supreme Court, Sofia · commercial dispute
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">20</div>
+          <div class="mon">Jul</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip warn"><svg><use href="#ic-clock"/></svg> Deadline</span>
+            <span class="chip ind">Individual</span>
+            <span class="chip muted">Case 887/2024</span>
+          </div>
+          <h4>Discovery deadline — Ivanov divorce</h4>
+          <div class="details">Financial disclosure package to be exchanged with opposing counsel</div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+
+      <div class="announcement">
+        <div class="when">
+          <div class="day">24</div>
+          <div class="mon">Jul</div>
+          <div class="time">11:00</div>
+        </div>
+        <div class="body">
+          <div class="type-row">
+            <span class="chip accent"><svg><use href="#ic-gavel"/></svg> Hearing</span>
+            <span class="chip gov">Government</span>
+            <span class="chip muted">Case 776/2024</span>
+          </div>
+          <h4>Employment tribunal — dismissal appeal</h4>
+          <div class="details">
+            <svg><use href="#ic-scale"/></svg> District Court Varna, room 4
+          </div>
+        </div>
+        <div class="actions">
+          <button class="icon-btn"><svg><use href="#ic-bell"/></svg></button>
+          <button class="icon-btn"><svg><use href="#ic-arrow-r"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ Theme toggle ═══════════════════════════════════════════ -->
+<button class="toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="moon"><use href="#ic-moon"/></svg>
+  <svg class="sun"><use href="#ic-sun"/></svg>
+</button>
+
+<script>
+/* Tab switching — one class flip on <html>, no framework, no libs */
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.classList.toggle('on', t.dataset.tab===name);
+  });
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.classList.toggle('on', p.id==='p-'+name);
+  });
+}
+
+function toggleTheme(){
+  var d=document.documentElement.classList.toggle('dark');
+  try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}
+}
+
+/* Action-item checkboxes — one delegated handler, mutates DOM state */
+function toggle(el){
+  el.classList.toggle('done');
+  el.parentElement.classList.toggle('done');
+}
+</script>
+
+</body>
+</html>

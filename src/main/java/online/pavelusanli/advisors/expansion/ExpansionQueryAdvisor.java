@@ -3,6 +3,7 @@ package online.pavelusanli.advisors.expansion;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -20,36 +21,19 @@ public class ExpansionQueryAdvisor implements BaseAdvisor {
 
     private static final PromptTemplate template = PromptTemplate.builder()
             .template("""
-                Instruction: Expand the search query by adding the most relevant terms.
-
-                SPRING FRAMEWORK SPECIALIZATION:
-                - Spring bean lifecycle: constructor → BeanPostProcessor → PostConstruct → proxy → ContextListener
-                - Technologies: Dynamic Proxy, CGLib, reflection, annotations, XML configuration
-                - Components: BeanFactory, ApplicationContext, BeanDefinition, MBean, JMX
-                - Patterns: dependency injection, AOP, profiling, method interception
-
-                RULES:
-                1. Keep ALL words from the original question
-                2. Add AT MOST FIVE of the most important terms
-                3. Choose the most specific and relevant words
-                4. Output a plain space-separated list of words
-
-                SELECTION STRATEGY:
-                - Priority: specialized terms
-                - Avoid generic words
-                - Focus on key concepts
-
-                EXAMPLES:
-                "what is spring" → "what is spring framework Java"
-                "how to create a file" → "how to create a file document program"
+                Rewrite the user question into a precise, self-contained search query.
+                Rules:
+                - Resolve pronouns and follow-up references ("that law", "this endpoint", "it") into explicit terms.
+                - Expand abbreviations where the meaning is clear from context.
+                - Keep all key terms from the original question.
+                - Do NOT add terms not implied by the question.
+                - Return only the rewritten query as a plain string. No explanation, no quotes.
 
                 Question: {question}
-                Expanded query:
+                Rewritten query:
                 """).build();
 
     public static final String ENRICHED_QUESTION = "ENRICHED_QUESTION";
-    public static final String ORIGINAL_QUESTION = "ORIGINAL_QUESTION";
-    public static final String EXPANSION_RATIO = "EXPANSION_RATIO";
 
     private ChatClient chatClient;
 
@@ -63,25 +47,31 @@ public class ExpansionQueryAdvisor implements BaseAdvisor {
     private final int order;
 
     @Override
-    public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
+    @NonNull
+    public ChatClientRequest before(@NonNull ChatClientRequest chatClientRequest, @NonNull AdvisorChain advisorChain) {
         String userQuestion = chatClientRequest.prompt().getUserMessage().getText();
-        String enrichedQuestion = chatClient
+        if (userQuestion == null || userQuestion.isBlank()) {
+            return chatClientRequest;
+        }
+
+        String enriched = chatClient
                 .prompt()
                 .user(template.render(Map.of("question", userQuestion)))
                 .call()
                 .content();
 
-        double ratio = enrichedQuestion.length() / (double) userQuestion.length();
+        if (enriched == null || enriched.isBlank()) {
+            return chatClientRequest;
+        }
 
         return chatClientRequest.mutate()
-                .context(ORIGINAL_QUESTION, userQuestion)
-                .context(ENRICHED_QUESTION, enrichedQuestion)
-                .context(EXPANSION_RATIO, ratio)
+                .context(ENRICHED_QUESTION, enriched)
                 .build();
     }
 
     @Override
-    public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
+    @NonNull
+    public ChatClientResponse after(@NonNull ChatClientResponse chatClientResponse, @NonNull AdvisorChain advisorChain) {
         return chatClientResponse;
     }
 }

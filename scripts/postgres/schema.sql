@@ -282,3 +282,15 @@ ALTER TABLE data_source
 
 ALTER TABLE loaded_document
     ADD COLUMN IF NOT EXISTS data_source_id BIGINT REFERENCES data_source(id);
+
+
+-- =================================================
+-- Knowledge Base — Hybrid Search (FTS on vector_store)
+-- =================================================
+
+ALTER TABLE vector_store
+    ADD COLUMN IF NOT EXISTS fts tsvector
+        GENERATED ALWAYS AS (to_tsvector('english', coalesce(content, ''))) STORED;
+
+CREATE INDEX IF NOT EXISTS idx_vector_store_fts
+    ON vector_store USING GIN(fts);

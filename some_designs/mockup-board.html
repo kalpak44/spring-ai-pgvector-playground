@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Client Projects Board</title>
+<style>
+/* ── Theme variables: light is the default, html.dark overrides ── */
+:root{
+  --bg:#FAF9F5; --surface:#ffffff; --surface-2:#f4f4f5;
+  --border:#e4e4e7; --border-strong:#d4d4d8;
+  --text-1:#18181b; --text-2:#52525b; --text-3:#a1a1aa;
+  --accent:#7c3aed; --danger:#dc2626; --warn-bg:#fef3c7; --warn-fg:#92400e;
+  --ok:#059669; --done-bg:#d1fae5;
+  --corporate-bg:#ede9fe; --corporate-fg:#5b21b6;
+  --startup-bg:#ccfbf1; --startup-fg:#115e59;
+  --government-bg:#fef3c7; --government-fg:#92400e;
+  --individual-bg:#fce7f3; --individual-fg:#9d174d;
+  --shadow:0 1px 3px rgba(0,0,0,.06);
+}
+html.dark{
+  --bg:#09090b; --surface:#18181b; --surface-2:#27272a;
+  --border:#27272a; --border-strong:#3f3f46;
+  --text-1:#f4f4f5; --text-2:#a1a1aa; --text-3:#71717a;
+  --warn-bg:rgba(245,158,11,.15); --warn-fg:#fbbf24;
+  --done-bg:rgba(5,150,105,.2);
+  --corporate-bg:rgba(139,92,246,.15); --corporate-fg:#a78bfa;
+  --startup-bg:rgba(20,184,166,.15); --startup-fg:#2dd4bf;
+  --government-bg:rgba(245,158,11,.15); --government-fg:#fbbf24;
+  --individual-bg:rgba(236,72,153,.15); --individual-fg:#f472b6;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text-1);font-family:'Outfit',system-ui,-apple-system,sans-serif;min-height:100vh;padding:32px 20px;transition:background .2s}
+.board{max-width:860px;margin:0 auto}
+.board-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.board-head h1{font-size:18px;font-weight:600}
+.board-head .meta{font-size:13px;color:var(--text-3)}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:640px){.cols{grid-template-columns:1fr}}
+.col-title{font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px 2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card.done{opacity:.7}
+.card.done .title{text-decoration:line-through;color:var(--text-3)}
+.badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:10px;font-weight:500}
+.badge.corporate{background:var(--corporate-bg);color:var(--corporate-fg)}
+.badge.startup{background:var(--startup-bg);color:var(--startup-fg)}
+.badge.government{background:var(--government-bg);color:var(--government-fg)}
+.badge.individual{background:var(--individual-bg);color:var(--individual-fg)}
+.title{font-size:14px;margin:8px 0 10px;line-height:1.4}
+.foot{display:flex;align-items:center;gap:8px}
+.prio{font-size:13px;font-weight:600;letter-spacing:-1px}
+.prio.high{color:var(--danger)}.prio.mid{color:var(--warn-fg)}.prio.low{color:var(--text-3)}
+.due{font-size:11.5px;color:var(--text-2);margin-right:auto}
+.due.warn{background:var(--warn-bg);color:var(--warn-fg);padding:2px 8px;border-radius:8px}
+.due.ok{color:var(--ok)}
+.avatars{display:flex}
+.av{width:23px;height:23px;border-radius:50%;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)}
+.av+.av{margin-left:-7px}
+.av.v{background:var(--corporate-bg);color:var(--corporate-fg)}
+.av.g{background:var(--done-bg);color:var(--ok)}
+.av.p{background:var(--individual-bg);color:var(--individual-fg)}
+.av.watch{background:var(--surface-2);color:var(--text-2);font-size:9px}
+.toggle{position:fixed;bottom:18px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--text-2)}
+.toggle:hover{color:var(--text-1)}
+.toggle .sun{display:none}.toggle .moon{display:block}
+html.dark .toggle .sun{display:block}html.dark .toggle .moon{display:none}
+</style>
+<script>
+(function(){try{var t=localStorage.getItem('theme');
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))
+document.documentElement.classList.add('dark');}catch(e){}})();
+</script>
+</head>
+<body>
+
+<div class="board">
+  <div class="board-head">
+    <h1>Client projects</h1>
+    <span class="meta">6 members</span>
+  </div>
+
+  <div class="cols">
+    <div>
+      <p class="col-title">To do · 2</p>
+      <div class="card">
+        <span class="badge corporate">Corporate</span>
+        <p class="title">Migrate invoicing API</p>
+        <div class="foot">
+          <span class="prio high" title="High priority">≫</span>
+          <span class="due">📅 Jul 21</span>
+          <div class="avatars"><span class="av v">IV</span><span class="av watch" title="2 watchers">👁2</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge individual">Individual</span>
+        <p class="title">Draft consulting offer</p>
+        <div class="foot">
+          <span class="prio low" title="Low priority">≪</span>
+          <span class="due">📅 Aug 4</span>
+          <div class="avatars"><span class="av g">MP</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="col-title">In progress · 2</p>
+      <div class="card">
+        <span class="badge startup">Startup</span>
+        <p class="title">Onboard NovaPay sandbox</p>
+        <div class="foot">
+          <span class="prio high" title="High priority">≫</span>
+          <span class="due warn">🔔 2 days left</span>
+          <div class="avatars"><span class="av v">KD</span><span class="av watch" title="3 watchers">👁3</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="badge government">Government</span>
+        <p class="title">Compliance review Q3</p>
+        <div class="foot">
+          <span class="prio mid" title="Medium priority">=</span>
+          <span class="due">📅 Jul 30</span>
+          <div class="avatars"><span class="av p">AS</span><span class="av watch" title="1 watcher">👁1</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="col-title">Done · 1</p>
+      <div class="card done">
+        <span class="badge corporate">Corporate</span>
+        <p class="title">SSO rollout plan</p>
+        <div class="foot">
+          <span class="prio low" title="Medium priority">=</span>
+          <span class="due ok">✓ Jul 2</span>
+          <div class="avatars"><span class="av v">IV</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <span class="sun">☀️</span><span class="moon">🌙</span>
+</button>
+<script>
+function toggleTheme(){
+  var d=document.documentElement.classList.toggle('dark');
+  try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}
+}
+</script>
+
+</body>
+</html>

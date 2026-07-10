@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf">
+    <meta name="_csrf_header">
+    <title>Board — AI Assistant</title>
+    <style>
+:root{--scroll-thumb:#d4d4d8;--scroll-thumb-hover:#a1a1aa;--dd-bg:#ffffff;--dd-border:#e4e4e7;--dd-text:#18181b;--dd-hover:#f4f4f5;}
+html.dark{--scroll-thumb:#3f3f46;--scroll-thumb-hover:#52525b;--dd-bg:#18181b;--dd-border:#3f3f46;--dd-text:#e4e4e7;--dd-hover:#27272a;color-scheme:dark;}
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width:640px){.container{max-width:640px}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}@media (min-width:1280px){.container{max-width:1280px}}@media (min-width:1536px){.container{max-width:1536px}}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.-right-0\.5{right:-.125rem}.-top-0\.5{top:-.125rem}.bottom-0{bottom:0}.bottom-2{bottom:.5rem}.bottom-4{bottom:1rem}.bottom-6{bottom:1.5rem}.left-0{left:0}.left-1\/2{left:50%}.left-3{left:.75rem}.right-0{right:0}.right-2{right:.5rem}.right-4{right:1rem}.top-0{top:0}.top-1\/2{top:50%}.top-full{top:100%}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.z-50{z-index:50}.-mx-5{margin-left:-1.25rem;margin-right:-1.25rem}.mx-1{margin-left:.25rem;margin-right:.25rem}.mx-4{margin-left:1rem;margin-right:1rem}.mx-auto{margin-left:auto;margin-right:auto}.my-1{margin-top:.25rem;margin-bottom:.25rem}.-ml-1\.5{margin-left:-.375rem}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-1{margin-left:.25rem}.ml-2{margin-left:.5rem}.ml-auto{margin-left:auto}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-6{margin-top:1.5rem}.mt-auto{margin-top:auto}.line-clamp-1{-webkit-line-clamp:1}.line-clamp-1,.line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical}.line-clamp-2{-webkit-line-clamp:2}.block{display:block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-1{height:.25rem}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-2\.5{height:.625rem}.h-3{height:.75rem}.h-3\.5{height:.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-\[160px\]{height:160px}.h-\[3px\]{height:3px}.h-full{height:100%}.h-px{height:1px}.h-screen{height:100vh}.max-h-52{max-height:13rem}.max-h-\[90vh\]{max-height:90vh}.min-h-0{min-height:0}.min-h-8{min-height:2rem}.min-h-\[160px\]{min-height:160px}.min-h-\[18px\]{min-height:18px}.min-h-screen{min-height:100vh}.w-1\.5{width:.375rem}.w-10{width:2.5rem}.w-12{width:3rem}.w-14{width:3.5rem}.w-2\.5{width:.625rem}.w-3{width:.75rem}.w-3\.5{width:.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-80{width:20rem}.w-9{width:2.25rem}.w-full{width:100%}.w-px{width:1px}.min-w-0{min-width:0}.min-w-full{min-width:100%}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-5xl{max-width:64rem}.max-w-6xl{max-width:72rem}.max-w-\[120px\]{max-width:120px}.max-w-\[140px\]{max-width:140px}.max-w-\[50\%\]{max-width:50%}.max-w-lg{max-width:32rem}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.max-w-xl{max-width:36rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%}.-translate-x-1\/2,.-translate-y-1\/2{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes spin{to{transform:rotate(1turn)}}.animate-spin{animation:spin 1s linear infinite}.cursor-pointer{cursor:pointer}.resize-none{resize:none}.auto-rows-fr{grid-auto-rows:minmax(0,1fr)}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-0\.5{gap:.125rem}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-10{gap:2.5rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-3\.5{gap:.875rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-y-0\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.125rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.125rem*var(--tw-space-y-reverse))}.divide-y>:not([hidden])~:not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px*(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px*var(--tw-divide-y-reverse))}.divide-zinc-200>:not([hidden])~:not([hidden]){--tw-divide-opacity:1;border-color:rgb(228 228 231/var(--tw-divide-opacity,1))}.self-start{align-self:flex-start}.self-end{align-self:flex-end}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-pre-wrap{white-space:pre-wrap}.rounded{border-radius:.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-bl-sm{border-bottom-left-radius:.125rem}.rounded-br-sm{border-bottom-right-radius:.125rem}.border{border-width:1px}.border-0{border-width:0}.border-2{border-width:2px}.border-\[1\.5px\]{border-width:1.5px}.border-b{border-bottom-width:1px}.border-l{border-left-width:1px}.border-r{border-right-width:1px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138/var(--tw-border-opacity,1))}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77/var(--tw-border-opacity,1))}.border-emerald-300{--tw-border-opacity:1;border-color:rgb(110 231 183/var(--tw-border-opacity,1))}.border-green-500\/20{border-color:rgba(34,197,94,.2)}.border-pink-200{--tw-border-opacity:1;border-color:rgb(251 207 232/var(--tw-border-opacity,1))}.border-red-200{--tw-border-opacity:1;border-color:rgb(254 202 202/var(--tw-border-opacity,1))}.border-red-300{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.border-teal-200{--tw-border-opacity:1;border-color:rgb(153 246 228/var(--tw-border-opacity,1))}.border-transparent{border-color:transparent}.border-violet-200{--tw-border-opacity:1;border-color:rgb(221 214 254/var(--tw-border-opacity,1))}.border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.border-zinc-200{--tw-border-opacity:1;border-color:rgb(228 228 231/var(--tw-border-opacity,1))}.border-zinc-300{--tw-border-opacity:1;border-color:rgb(212 212 216/var(--tw-border-opacity,1))}.bg-\[\#FAF9F5\]{--tw-bg-opacity:1;background-color:rgb(250 249 245/var(--tw-bg-opacity,1))}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36/var(--tw-bg-opacity,1))}.bg-black\/30{background-color:rgba(0,0,0,.3)}.bg-black\/40{background-color:rgba(0,0,0,.4)}.bg-black\/60{background-color:rgba(0,0,0,.6)}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229/var(--tw-bg-opacity,1))}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153/var(--tw-bg-opacity,1))}.bg-green-500\/10{background-color:rgba(34,197,94,.1)}.bg-orange-100{--tw-bg-opacity:1;background-color:rgb(255 237 213/var(--tw-bg-opacity,1))}.bg-orange-400{--tw-bg-opacity:1;background-color:rgb(251 146 60/var(--tw-bg-opacity,1))}.bg-pink-100{--tw-bg-opacity:1;background-color:rgb(252 231 243/var(--tw-bg-opacity,1))}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.bg-red-400{--tw-bg-opacity:1;background-color:rgb(248 113 113/var(--tw-bg-opacity,1))}.bg-red-50{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity,1))}.bg-red-600{--tw-bg-opacity:1;background-color:rgb(220 38 38/var(--tw-bg-opacity,1))}.bg-red-700{--tw-bg-opacity:1;background-color:rgb(185 28 28/var(--tw-bg-opacity,1))}.bg-sky-100{--tw-bg-opacity:1;background-color:rgb(224 242 254/var(--tw-bg-opacity,1))}.bg-sky-400{--tw-bg-opacity:1;background-color:rgb(56 189 248/var(--tw-bg-opacity,1))}.bg-teal-100{--tw-bg-opacity:1;background-color:rgb(204 251 241/var(--tw-bg-opacity,1))}.bg-transparent{background-color:transparent}.bg-violet-100{--tw-bg-opacity:1;background-color:rgb(237 233 254/var(--tw-bg-opacity,1))}.bg-violet-400{--tw-bg-opacity:1;background-color:rgb(167 139 250/var(--tw-bg-opacity,1))}.bg-violet-600{--tw-bg-opacity:1;background-color:rgb(124 58 237/var(--tw-bg-opacity,1))}.bg-violet-700{--tw-bg-opacity:1;background-color:rgb(109 40 217/var(--tw-bg-opacity,1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255/var(--tw-bg-opacity,1))}.bg-zinc-100{--tw-bg-opacity:1;background-color:rgb(244 244 245/var(--tw-bg-opacity,1))}.bg-zinc-200{--tw-bg-opacity:1;background-color:rgb(228 228 231/var(--tw-bg-opacity,1))}.bg-zinc-300{--tw-bg-opacity:1;background-color:rgb(212 212 216/var(--tw-bg-opacity,1))}.bg-zinc-500{--tw-bg-opacity:1;background-color:rgb(113 113 122/var(--tw-bg-opacity,1))}.p-0\.5{padding:.125rem}.p-1{padding:.25rem}.p-1\.5{padding:.375rem}.p-12{padding:3rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-2{padding-bottom:.5rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.pl-9{padding-left:2.25rem}.pr-3{padding-right:.75rem}.pr-5{padding-right:1.25rem}.pt-1{padding-top:.25rem}.pt-2{padding-top:.5rem}.pt-2\.5{padding-top:.625rem}.pt-4{padding-top:1rem}.pt-6{padding-top:1.5rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-.025em}.tracking-widest{letter-spacing:.1em}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6/var(--tw-text-opacity,1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14/var(--tw-text-opacity,1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105/var(--tw-text-opacity,1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128/var(--tw-text-opacity,1))}.text-green-400\/60{color:rgba(74,222,128,.6)}.text-orange-600{--tw-text-opacity:1;color:rgb(234 88 12/var(--tw-text-opacity,1))}.text-pink-800{--tw-text-opacity:1;color:rgb(157 23 77/var(--tw-text-opacity,1))}.text-red-400\/60{color:hsla(0,91%,71%,.6)}.text-red-400\/80{color:hsla(0,91%,71%,.8)}.text-red-500\/70{color:rgba(239,68,68,.7)}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.text-red-600\/70{color:rgba(220,38,38,.7)}.text-red-800{--tw-text-opacity:1;color:rgb(153 27 27/var(--tw-text-opacity,1))}.text-sky-600{--tw-text-opacity:1;color:rgb(2 132 199/var(--tw-text-opacity,1))}.text-teal-800{--tw-text-opacity:1;color:rgb(17 94 89/var(--tw-text-opacity,1))}.text-violet-500{--tw-text-opacity:1;color:rgb(139 92 246/var(--tw-text-opacity,1))}.text-violet-600{--tw-text-opacity:1;color:rgb(124 58 237/var(--tw-text-opacity,1))}.text-violet-700{--tw-text-opacity:1;color:rgb(109 40 217/var(--tw-text-opacity,1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.text-zinc-300{--tw-text-opacity:1;color:rgb(212 212 216/var(--tw-text-opacity,1))}.text-zinc-400{--tw-text-opacity:1;color:rgb(161 161 170/var(--tw-text-opacity,1))}.text-zinc-500{--tw-text-opacity:1;color:rgb(113 113 122/var(--tw-text-opacity,1))}.text-zinc-600{--tw-text-opacity:1;color:rgb(82 82 91/var(--tw-text-opacity,1))}.text-zinc-700{--tw-text-opacity:1;color:rgb(63 63 70/var(--tw-text-opacity,1))}.text-zinc-800{--tw-text-opacity:1;color:rgb(39 39 42/var(--tw-text-opacity,1))}.text-zinc-900{--tw-text-opacity:1;color:rgb(24 24 27/var(--tw-text-opacity,1))}.underline{text-decoration-line:underline}.decoration-violet-700{text-decoration-color:#6d28d9}.underline-offset-2{text-underline-offset:2px}.placeholder-zinc-400::-moz-placeholder{--tw-placeholder-opacity:1;color:rgb(161 161 170/var(--tw-placeholder-opacity,1))}.placeholder-zinc-400::placeholder{--tw-placeholder-opacity:1;color:rgb(161 161 170/var(--tw-placeholder-opacity,1))}.accent-violet-500{accent-color:#8b5cf6}.opacity-0{opacity:0}.opacity-25{opacity:.25}.opacity-75{opacity:.75}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgba(0,0,0,.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color)}.shadow-2xl,.shadow-lg{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color)}.shadow-md{--tw-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color),0 2px 4px -2px var(--tw-shadow-color)}.shadow-md,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color),0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-black\/40{--tw-shadow-color:rgba(0,0,0,.4);--tw-shadow:var(--tw-shadow-colored)}.shadow-red-200\/60{--tw-shadow-color:hsla(0,96%,89%,.6);--tw-shadow:var(--tw-shadow-colored)}.shadow-violet-200\/60{--tw-shadow-color:rgba(221,214,254,.6);--tw-shadow:var(--tw-shadow-colored)}.outline-none{outline:2px solid transparent;outline-offset:2px}.outline{outline-style:solid}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1)}.duration-150,.transition-opacity{transition-duration:.15s}.\[color-scheme\:dark\]{color-scheme:dark}.last\:border-0:last-child{border-width:0}.focus-within\:border-violet-300:focus-within{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.focus-within\:border-violet-500\/60:focus-within{border-color:rgba(139,92,246,.6)}.focus-within\:ring-1:focus-within{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.focus-within\:ring-violet-500\/20:focus-within{--tw-ring-color:rgba(139,92,246,.2)}.focus-within\:ring-violet-500\/25:focus-within{--tw-ring-color:rgba(139,92,246,.25)}.hover\:scale-110:hover{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-red-300:hover{--tw-border-opacity:1;border-color:rgb(252 165 165/var(--tw-border-opacity,1))}.hover\:border-violet-300:hover{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.hover\:border-zinc-200:hover{--tw-border-opacity:1;border-color:rgb(228 228 231/var(--tw-border-opacity,1))}.hover\:bg-amber-100:hover{--tw-bg-opacity:1;background-color:rgb(254 243 199/var(--tw-bg-opacity,1))}.hover\:bg-red-100:hover{--tw-bg-opacity:1;background-color:rgb(254 226 226/var(--tw-bg-opacity,1))}.hover\:bg-red-50:hover{--tw-bg-opacity:1;background-color:rgb(254 242 242/var(--tw-bg-opacity,1))}.hover\:bg-red-500:hover{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity,1))}.hover\:bg-red-600:hover{--tw-bg-opacity:1;background-color:rgb(220 38 38/var(--tw-bg-opacity,1))}.hover\:bg-violet-100:hover{--tw-bg-opacity:1;background-color:rgb(237 233 254/var(--tw-bg-opacity,1))}.hover\:bg-violet-500:hover{--tw-bg-opacity:1;background-color:rgb(139 92 246/var(--tw-bg-opacity,1))}.hover\:bg-zinc-100:hover{--tw-bg-opacity:1;background-color:rgb(244 244 245/var(--tw-bg-opacity,1))}.hover\:bg-zinc-200:hover{--tw-bg-opacity:1;background-color:rgb(228 228 231/var(--tw-bg-opacity,1))}.hover\:text-green-400:hover{--tw-text-opacity:1;color:rgb(74 222 128/var(--tw-text-opacity,1))}.hover\:text-red-600:hover{--tw-text-opacity:1;color:rgb(220 38 38/var(--tw-text-opacity,1))}.hover\:text-red-700:hover{--tw-text-opacity:1;color:rgb(185 28 28/var(--tw-text-opacity,1))}.hover\:text-violet-600:hover{--tw-text-opacity:1;color:rgb(124 58 237/var(--tw-text-opacity,1))}.hover\:text-violet-700:hover{--tw-text-opacity:1;color:rgb(109 40 217/var(--tw-text-opacity,1))}.hover\:text-violet-800:hover{--tw-text-opacity:1;color:rgb(91 33 182/var(--tw-text-opacity,1))}.hover\:text-zinc-500:hover{--tw-text-opacity:1;color:rgb(113 113 122/var(--tw-text-opacity,1))}.hover\:text-zinc-700:hover{--tw-text-opacity:1;color:rgb(63 63 70/var(--tw-text-opacity,1))}.hover\:text-zinc-800:hover{--tw-text-opacity:1;color:rgb(39 39 42/var(--tw-text-opacity,1))}.hover\:text-zinc-900:hover{--tw-text-opacity:1;color:rgb(24 24 27/var(--tw-text-opacity,1))}.hover\:decoration-violet-400:hover{text-decoration-color:#a78bfa}.hover\:shadow-lg:hover{--tw-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color),0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.hover\:shadow-black\/30:hover{--tw-shadow-color:rgba(0,0,0,.3);--tw-shadow:var(--tw-shadow-colored)}.focus\:border-violet-300:focus{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.focus\:border-violet-500\/60:focus{border-color:rgba(139,92,246,.6)}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-1:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.focus\:ring-violet-500\/20:focus{--tw-ring-color:rgba(139,92,246,.2)}.focus\:ring-violet-500\/25:focus{--tw-ring-color:rgba(139,92,246,.25)}.active\:bg-red-700:active{--tw-bg-opacity:1;background-color:rgb(185 28 28/var(--tw-bg-opacity,1))}.active\:bg-violet-700:active{--tw-bg-opacity:1;background-color:rgb(109 40 217/var(--tw-bg-opacity,1))}.active\:bg-zinc-600:active{--tw-bg-opacity:1;background-color:rgb(82 82 91/var(--tw-bg-opacity,1))}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:border-zinc-200:disabled{--tw-border-opacity:1;border-color:rgb(228 228 231/var(--tw-border-opacity,1))}.disabled\:bg-zinc-100:disabled{--tw-bg-opacity:1;background-color:rgb(244 244 245/var(--tw-bg-opacity,1))}.disabled\:text-zinc-400:disabled{--tw-text-opacity:1;color:rgb(161 161 170/var(--tw-text-opacity,1))}.disabled\:opacity-40:disabled{opacity:.4}.group:hover .group-hover\:border-violet-300{--tw-border-opacity:1;border-color:rgb(196 181 253/var(--tw-border-opacity,1))}.group:hover .group-hover\:bg-violet-100{--tw-bg-opacity:1;background-color:rgb(237 233 254/var(--tw-bg-opacity,1))}.group:hover .group-hover\:text-violet-600{--tw-text-opacity:1;color:rgb(124 58 237/var(--tw-text-opacity,1))}.group:hover .group-hover\:text-zinc-500{--tw-text-opacity:1;color:rgb(113 113 122/var(--tw-text-opacity,1))}.group:hover .group-hover\:opacity-100{opacity:1}.peer:checked~.peer-checked\:border-violet-400{--tw-border-opacity:1;border-color:rgb(167 139 250/var(--tw-border-opacity,1))}.peer:checked~.peer-checked\:border-white{--tw-border-opacity:1;border-color:rgb(255 255 255/var(--tw-border-opacity,1))}.peer:checked~.peer-checked\:border-zinc-900{--tw-border-opacity:1;border-color:rgb(24 24 27/var(--tw-border-opacity,1))}.peer:checked~.peer-checked\:ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.peer:checked~.peer-checked\:ring-violet-400\/30{--tw-ring-color:rgba(167,139,250,.3)}.peer:checked~.peer-checked\:ring-white\/30{--tw-ring-color:hsla(0,0%,100%,.3)}.peer:checked~.peer-checked\:ring-zinc-900\/20{--tw-ring-color:rgba(24,24,27,.2)}.dark\:divide-zinc-800\/60:is(.dark *)>:not([hidden])~:not([hidden]){border-color:rgba(39,39,42,.6)}.dark\:border-amber-500\/25:is(.dark *){border-color:rgba(245,158,11,.25)}.dark\:border-amber-500\/30:is(.dark *){border-color:rgba(245,158,11,.3)}.dark\:border-emerald-500\/25:is(.dark *){border-color:rgba(16,185,129,.25)}.dark\:border-emerald-500\/30:is(.dark *){border-color:rgba(16,185,129,.3)}.dark\:border-pink-500\/25:is(.dark *){border-color:rgba(236,72,153,.25)}.dark\:border-red-500\/20:is(.dark *){border-color:rgba(239,68,68,.2)}.dark\:border-red-500\/25:is(.dark *){border-color:rgba(239,68,68,.25)}.dark\:border-red-500\/30:is(.dark *){border-color:rgba(239,68,68,.3)}.dark\:border-red-700\/60:is(.dark *){border-color:rgba(185,28,28,.6)}.dark\:border-teal-500\/25:is(.dark *){border-color:rgba(20,184,166,.25)}.dark\:border-violet-500\/20:is(.dark *){border-color:rgba(139,92,246,.2)}.dark\:border-violet-500\/25:is(.dark *){border-color:rgba(139,92,246,.25)}.dark\:border-violet-500\/30:is(.dark *){border-color:rgba(139,92,246,.3)}.dark\:border-zinc-600:is(.dark *){--tw-border-opacity:1;border-color:rgb(82 82 91/var(--tw-border-opacity,1))}.dark\:border-zinc-600\/30:is(.dark *){border-color:rgba(82,82,91,.3)}.dark\:border-zinc-600\/50:is(.dark *){border-color:rgba(82,82,91,.5)}.dark\:border-zinc-600\/60:is(.dark *){border-color:rgba(82,82,91,.6)}.dark\:border-zinc-700\/40:is(.dark *){border-color:rgba(63,63,70,.4)}.dark\:border-zinc-700\/50:is(.dark *){border-color:rgba(63,63,70,.5)}.dark\:border-zinc-700\/60:is(.dark *){border-color:rgba(63,63,70,.6)}.dark\:border-zinc-800:is(.dark *){--tw-border-opacity:1;border-color:rgb(39 39 42/var(--tw-border-opacity,1))}.dark\:border-zinc-800\/40:is(.dark *){border-color:rgba(39,39,42,.4)}.dark\:border-zinc-800\/60:is(.dark *){border-color:rgba(39,39,42,.6)}.dark\:border-zinc-800\/80:is(.dark *){border-color:rgba(39,39,42,.8)}.dark\:border-zinc-900:is(.dark *){--tw-border-opacity:1;border-color:rgb(24 24 27/var(--tw-border-opacity,1))}.dark\:bg-\[\#0c0c0f\]:is(.dark *){--tw-bg-opacity:1;background-color:rgb(12 12 15/var(--tw-bg-opacity,1))}.dark\:bg-amber-500\/10:is(.dark *){background-color:rgba(245,158,11,.1)}.dark\:bg-amber-500\/15:is(.dark *){background-color:rgba(245,158,11,.15)}.dark\:bg-emerald-500\/10:is(.dark *){background-color:rgba(16,185,129,.1)}.dark\:bg-emerald-500\/15:is(.dark *){background-color:rgba(16,185,129,.15)}.dark\:bg-orange-500\/15:is(.dark *){background-color:rgba(249,115,22,.15)}.dark\:bg-pink-500\/15:is(.dark *){background-color:rgba(236,72,153,.15)}.dark\:bg-red-500\/10:is(.dark *){background-color:rgba(239,68,68,.1)}.dark\:bg-red-500\/15:is(.dark *){background-color:rgba(239,68,68,.15)}.dark\:bg-red-900\/90:is(.dark *){background-color:rgba(127,29,29,.9)}.dark\:bg-sky-500\/15:is(.dark *){background-color:rgba(14,165,233,.15)}.dark\:bg-teal-500\/15:is(.dark *){background-color:rgba(20,184,166,.15)}.dark\:bg-violet-500\/15:is(.dark *){background-color:rgba(139,92,246,.15)}.dark\:bg-violet-600\/10:is(.dark *){background-color:rgba(124,58,237,.1)}.dark\:bg-violet-600\/20:is(.dark *){background-color:rgba(124,58,237,.2)}.dark\:bg-violet-600\/30:is(.dark *){background-color:rgba(124,58,237,.3)}.dark\:bg-zinc-600:is(.dark *){--tw-bg-opacity:1;background-color:rgb(82 82 91/var(--tw-bg-opacity,1))}.dark\:bg-zinc-700:is(.dark *){--tw-bg-opacity:1;background-color:rgb(63 63 70/var(--tw-bg-opacity,1))}.dark\:bg-zinc-700\/50:is(.dark *){background-color:rgba(63,63,70,.5)}.dark\:bg-zinc-800:is(.dark *){--tw-bg-opacity:1;background-color:rgb(39 39 42/var(--tw-bg-opacity,1))}.dark\:bg-zinc-800\/60:is(.dark *){background-color:rgba(39,39,42,.6)}.dark\:bg-zinc-800\/70:is(.dark *){background-color:rgba(39,39,42,.7)}.dark\:bg-zinc-800\/80:is(.dark *){background-color:rgba(39,39,42,.8)}.dark\:bg-zinc-900:is(.dark *){--tw-bg-opacity:1;background-color:rgb(24 24 27/var(--tw-bg-opacity,1))}.dark\:bg-zinc-900\/50:is(.dark *){background-color:rgba(24,24,27,.5)}.dark\:bg-zinc-900\/60:is(.dark *){background-color:rgba(24,24,27,.6)}.dark\:bg-zinc-950:is(.dark *){--tw-bg-opacity:1;background-color:rgb(9 9 11/var(--tw-bg-opacity,1))}.dark\:text-amber-300:is(.dark *){--tw-text-opacity:1;color:rgb(252 211 77/var(--tw-text-opacity,1))}.dark\:text-amber-400:is(.dark *){--tw-text-opacity:1;color:rgb(251 191 36/var(--tw-text-opacity,1))}.dark\:text-emerald-400:is(.dark *){--tw-text-opacity:1;color:rgb(52 211 153/var(--tw-text-opacity,1))}.dark\:text-orange-400:is(.dark *){--tw-text-opacity:1;color:rgb(251 146 60/var(--tw-text-opacity,1))}.dark\:text-pink-400:is(.dark *){--tw-text-opacity:1;color:rgb(244 114 182/var(--tw-text-opacity,1))}.dark\:text-red-200:is(.dark *){--tw-text-opacity:1;color:rgb(254 202 202/var(--tw-text-opacity,1))}.dark\:text-red-300:is(.dark *){--tw-text-opacity:1;color:rgb(252 165 165/var(--tw-text-opacity,1))}.dark\:text-red-400:is(.dark *){--tw-text-opacity:1;color:rgb(248 113 113/var(--tw-text-opacity,1))}.dark\:text-sky-400:is(.dark *){--tw-text-opacity:1;color:rgb(56 189 248/var(--tw-text-opacity,1))}.dark\:text-teal-400:is(.dark *){--tw-text-opacity:1;color:rgb(45 212 191/var(--tw-text-opacity,1))}.dark\:text-violet-300:is(.dark *){--tw-text-opacity:1;color:rgb(196 181 253/var(--tw-text-opacity,1))}.dark\:text-violet-400:is(.dark *){--tw-text-opacity:1;color:rgb(167 139 250/var(--tw-text-opacity,1))}.dark\:text-zinc-100:is(.dark *){--tw-text-opacity:1;color:rgb(244 244 245/var(--tw-text-opacity,1))}.dark\:text-zinc-200:is(.dark *){--tw-text-opacity:1;color:rgb(228 228 231/var(--tw-text-opacity,1))}.dark\:text-zinc-300:is(.dark *){--tw-text-opacity:1;color:rgb(212 212 216/var(--tw-text-opacity,1))}.dark\:text-zinc-400:is(.dark *){--tw-text-opacity:1;color:rgb(161 161 170/var(--tw-text-opacity,1))}.dark\:text-zinc-600:is(.dark *){--tw-text-opacity:1;color:rgb(82 82 91/var(--tw-text-opacity,1))}.dark\:text-zinc-700:is(.dark *){--tw-text-opacity:1;color:rgb(63 63 70/var(--tw-text-opacity,1))}.dark\:placeholder-zinc-500:is(.dark *)::-moz-placeholder{--tw-placeholder-opacity:1;color:rgb(113 113 122/var(--tw-placeholder-opacity,1))}.dark\:placeholder-zinc-500:is(.dark *)::placeholder{--tw-placeholder-opacity:1;color:rgb(113 113 122/var(--tw-placeholder-opacity,1))}.dark\:placeholder-zinc-600:is(.dark *)::-moz-placeholder{--tw-placeholder-opacity:1;color:rgb(82 82 91/var(--tw-placeholder-opacity,1))}.dark\:placeholder-zinc-600:is(.dark *)::placeholder{--tw-placeholder-opacity:1;color:rgb(82 82 91/var(--tw-placeholder-opacity,1))}.dark\:shadow-red-950\/40:is(.dark *){--tw-shadow-color:rgba(69,10,10,.4);--tw-shadow:var(--tw-shadow-colored)}.dark\:shadow-violet-900\/40:is(.dark *){--tw-shadow-color:rgba(76,29,149,.4);--tw-shadow:var(--tw-shadow-colored)}.dark\:shadow-violet-900\/50:is(.dark *){--tw-shadow-color:rgba(76,29,149,.5);--tw-shadow:var(--tw-shadow-colored)}.dark\:shadow-violet-950\/40:is(.dark *){--tw-shadow-color:rgba(46,16,101,.4);--tw-shadow:var(--tw-shadow-colored)}.dark\:shadow-violet-950\/50:is(.dark *){--tw-shadow-color:rgba(46,16,101,.5);--tw-shadow:var(--tw-shadow-colored)}.dark\:focus-within\:border-violet-500\/50:focus-within:is(.dark *){border-color:rgba(139,92,246,.5)}.dark\:focus-within\:border-violet-500\/60:focus-within:is(.dark *){border-color:rgba(139,92,246,.6)}.dark\:hover\:border-red-500\/40:hover:is(.dark *){border-color:rgba(239,68,68,.4)}.dark\:hover\:border-red-600\/40:hover:is(.dark *){border-color:rgba(220,38,38,.4)}.dark\:hover\:border-violet-500\/40:hover:is(.dark *){border-color:rgba(139,92,246,.4)}.dark\:hover\:border-zinc-700:hover:is(.dark *){--tw-border-opacity:1;border-color:rgb(63 63 70/var(--tw-border-opacity,1))}.dark\:hover\:bg-amber-500\/25:hover:is(.dark *){background-color:rgba(245,158,11,.25)}.dark\:hover\:bg-red-500\/10:hover:is(.dark *){background-color:rgba(239,68,68,.1)}.dark\:hover\:bg-red-500\/15:hover:is(.dark *){background-color:rgba(239,68,68,.15)}.dark\:hover\:bg-red-500\/20:hover:is(.dark *){background-color:rgba(239,68,68,.2)}.dark\:hover\:bg-red-900\/60:hover:is(.dark *){background-color:rgba(127,29,29,.6)}.dark\:hover\:bg-violet-500\/10:hover:is(.dark *){background-color:rgba(139,92,246,.1)}.dark\:hover\:bg-zinc-700:hover:is(.dark *){--tw-bg-opacity:1;background-color:rgb(63 63 70/var(--tw-bg-opacity,1))}.dark\:hover\:bg-zinc-700\/60:hover:is(.dark *){background-color:rgba(63,63,70,.6)}.dark\:hover\:bg-zinc-700\/80:hover:is(.dark *){background-color:rgba(63,63,70,.8)}.dark\:hover\:bg-zinc-800\/30:hover:is(.dark *){background-color:rgba(39,39,42,.3)}.dark\:hover\:bg-zinc-800\/40:hover:is(.dark *){background-color:rgba(39,39,42,.4)}.dark\:hover\:bg-zinc-800\/50:hover:is(.dark *){background-color:rgba(39,39,42,.5)}.dark\:hover\:bg-zinc-800\/60:hover:is(.dark *){background-color:rgba(39,39,42,.6)}.dark\:hover\:text-red-300:hover:is(.dark *){--tw-text-opacity:1;color:rgb(252 165 165/var(--tw-text-opacity,1))}.dark\:hover\:text-red-400:hover:is(.dark *){--tw-text-opacity:1;color:rgb(248 113 113/var(--tw-text-opacity,1))}.dark\:hover\:text-violet-200:hover:is(.dark *){--tw-text-opacity:1;color:rgb(221 214 254/var(--tw-text-opacity,1))}.dark\:hover\:text-violet-300:hover:is(.dark *){--tw-text-opacity:1;color:rgb(196 181 253/var(--tw-text-opacity,1))}.dark\:hover\:text-violet-400:hover:is(.dark *){--tw-text-opacity:1;color:rgb(167 139 250/var(--tw-text-opacity,1))}.dark\:hover\:text-zinc-100:hover:is(.dark *){--tw-text-opacity:1;color:rgb(244 244 245/var(--tw-text-opacity,1))}.dark\:hover\:text-zinc-200:hover:is(.dark *){--tw-text-opacity:1;color:rgb(228 228 231/var(--tw-text-opacity,1))}.dark\:hover\:text-zinc-300:hover:is(.dark *){--tw-text-opacity:1;color:rgb(212 212 216/var(--tw-text-opacity,1))}.dark\:focus\:border-violet-500\/60:focus:is(.dark *){border-color:rgba(139,92,246,.6)}.dark\:disabled\:border-zinc-700\/30:disabled:is(.dark *){border-color:rgba(63,63,70,.3)}.dark\:disabled\:bg-zinc-800\/40:disabled:is(.dark *){background-color:rgba(39,39,42,.4)}.dark\:disabled\:text-zinc-600:disabled:is(.dark *){--tw-text-opacity:1;color:rgb(82 82 91/var(--tw-text-opacity,1))}.group:hover .dark\:group-hover\:border-violet-500\/30:is(.dark *){border-color:rgba(139,92,246,.3)}.group:hover .dark\:group-hover\:bg-violet-600\/10:is(.dark *){background-color:rgba(124,58,237,.1)}.group:hover .dark\:group-hover\:text-violet-400:is(.dark *){--tw-text-opacity:1;color:rgb(167 139 250/var(--tw-text-opacity,1))}.group:hover .dark\:group-hover\:text-zinc-400:is(.dark *){--tw-text-opacity:1;color:rgb(161 161 170/var(--tw-text-opacity,1))}.peer:checked~.dark\:peer-checked\:border-white:is(.dark *){--tw-border-opacity:1;border-color:rgb(255 255 255/var(--tw-border-opacity,1))}.peer:checked~.dark\:peer-checked\:ring-white\/30:is(.dark *){--tw-ring-color:hsla(0,0%,100%,.3)}@media (min-width:640px){.sm\:block{display:block}.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (min-width:1024px){.lg\:block{display:block}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:flex-row{flex-direction:row}.lg\:items-stretch{align-items:stretch}}@media (min-width:1280px){.xl\:w-72{width:18rem}.xl\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}</style>
+    <script>(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark");}catch(e){}})();</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .kanban-scroll::-webkit-scrollbar { width: 4px; }
+        .kanban-scroll::-webkit-scrollbar-track { background: transparent; }
+        .kanban-scroll::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
+        .kanban-scroll::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+        .drag-over { outline: 2px dashed #7c3aed; outline-offset: -2px; }
+        .card-dragging { opacity: 0.4; }
+        [draggable=true] { cursor: grab; }
+        [draggable=true]:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="bg-[#FAF9F5] dark:bg-zinc-950 h-screen flex flex-col overflow-hidden" style="font-family:'Outfit',sans-serif;">
+
+<!-- ── Notifications slide-over ─────────────────────────────────────── -->
+<div id="notifOverlay" class="hidden fixed inset-0 z-30 bg-black/40 backdrop-blur-sm" onclick="hideNotif()"></div>
+<div id="notifPanel" class="hidden fixed top-0 right-0 bottom-0 z-40 w-80 flex flex-col shadow-2xl border-l border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0c0c0f]">
+    <div class="h-14 border-b border-zinc-200 dark:border-zinc-800/60 flex items-center justify-between px-5 shrink-0">
+        <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium">Notifications</p>
+        <button onclick="hideNotif()" class="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors p-1 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+    <div class="flex-1 min-h-0 overflow-y-auto kanban-scroll p-4 flex flex-col gap-2">
+        <div
+             class="flex flex-col items-center justify-center gap-2 py-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-zinc-400 dark:text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+            </svg>
+            <p class="text-zinc-400 dark:text-zinc-600 text-xs">No unread notifications.</p>
+        </div>
+        <div
+             class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/60 rounded-xl px-3 py-2.5 flex flex-col gap-1">
+            <p class="text-zinc-700 dark:text-zinc-300 text-xs font-medium">EVENT</p>
+            <p class="text-zinc-400 dark:text-zinc-600 text-xs"
+               style="font-family:'JetBrains Mono',monospace;"></p>
+        </div>
+    </div>
+    <div
+         class="p-4 border-t border-zinc-200 dark:border-zinc-800/60 shrink-0">
+        <form method="post">
+            <button type="submit"
+                    class="w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700/60 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 text-xs font-medium px-3 py-2 rounded-lg transition-colors">Mark all read</button>
+        </form>
+    </div>
+</div>
+
+<!-- ── Settings slide-over (owner only) ──────────────────────────────── -->
+<div>
+    <div id="settingsOverlay" class="hidden fixed inset-0 z-30 bg-black/40 backdrop-blur-sm" onclick="hideSettings()"></div>
+    <div id="settingsPanel" class="hidden fixed top-0 right-0 bottom-0 z-40 w-80 flex flex-col shadow-2xl border-l border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0c0c0f]">
+        <div class="h-14 border-b border-zinc-200 dark:border-zinc-800/60 flex items-center justify-between px-5 shrink-0">
+            <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium">Settings</p>
+            <button onclick="hideSettings()" class="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 min-h-0 overflow-y-auto kanban-scroll p-5 flex flex-col gap-5">
+
+            <!-- Settings error flash -->
+            <div
+                 class="bg-red-100 dark:bg-red-500/10 border border-red-300 dark:border-red-500/20 rounded-xl px-3 py-2.5 flex items-center justify-between gap-3">
+                <p class="text-red-600 dark:text-red-400 text-xs"></p>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-400/60 hover:text-red-600 dark:hover:text-red-400 transition-colors p-0.5 rounded shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Board info form -->
+            <div class="flex flex-col gap-3">
+                <p class="text-xs text-zinc-500 uppercase tracking-widest"
+                   style="font-family:'JetBrains Mono',monospace;">Board Information</p>
+                <form method="post"
+                      class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-zinc-400 dark:text-zinc-600">Name</label>
+                        <input type="text" name="name" required maxlength="128"
+                               class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-zinc-400 dark:text-zinc-600">Description</label>
+                        <textarea name="description" rows="3" maxlength="1000"
+                                  class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all resize-none"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex flex-col gap-1">
+                            <p class="text-xs text-zinc-400 dark:text-zinc-600">Created</p>
+                            <p class="text-zinc-500 text-xs" style="font-family:'JetBrains Mono',monospace;"></p>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <p class="text-xs text-zinc-400 dark:text-zinc-600">Columns</p>
+                            <p class="text-zinc-500 text-xs" style="font-family:'JetBrains Mono',monospace;"></p>
+                        </div>
+                    </div>
+                    <button type="submit"
+                            class="self-end bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors shadow-md shadow-violet-200/60 dark:shadow-violet-950/40">Save</button>
+                </form>
+            </div>
+
+            <div class="h-px bg-zinc-100 dark:bg-zinc-800/60 -mx-5"></div>
+
+            <!-- Members section -->
+            <div class="flex flex-col gap-3">
+                <p class="text-xs text-zinc-500 uppercase tracking-widest"
+                   style="font-family:'JetBrains Mono',monospace;">Members</p>
+
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-violet-100 dark:bg-violet-600/30 border border-violet-300 dark:border-violet-500/20 flex items-center justify-center shrink-0"
+                             style="font-size:10px;font-family:'JetBrains Mono',monospace;">
+                            <span class="text-violet-700 dark:text-violet-300 font-medium"></span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-zinc-700 dark:text-zinc-300 text-xs font-medium truncate"></p>
+                            <p class="text-zinc-400 dark:text-zinc-600 text-[10px]" style="font-family:'JetBrains Mono',monospace;">Member</p>
+                        </div>
+                        <form
+                              method="post">
+                            <button type="submit" class="text-zinc-400 dark:text-zinc-700 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Invite input -->
+                <div class="flex flex-col gap-1.5 mt-1">
+                    <label class="text-xs text-zinc-400 dark:text-zinc-600">Invite member</label>
+                    <div class="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 focus-within:border-violet-300 dark:focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+                        </svg>
+                        <input type="text" id="memberSearch"
+                               autocomplete="off"
+                               oninput="onMemberInput(this.value)"
+                               class="flex-1 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none"/>
+                    </div>
+                    <form id="memberInviteForm" method="post" class="hidden">
+                        <input type="hidden" id="memberInviteUserId" name="userId"/>
+                    </form>
+                </div>
+
+                <div class="h-px bg-zinc-100 dark:bg-zinc-800/60 -mx-5"></div>
+
+                <!-- Danger zone -->
+                <div class="flex flex-col gap-2">
+                    <p class="text-xs text-red-500/70 uppercase tracking-widest"
+                       style="font-family:'JetBrains Mono',monospace;">Danger Zone</p>
+                    <button type="button" onclick="showBoardDeleteModal()"
+                            class="w-full flex items-center justify-center gap-2 bg-red-100 dark:bg-red-500/8 hover:bg-red-100 dark:hover:bg-red-500/15 border border-red-300 dark:border-red-500/20 hover:border-red-300 dark:hover:border-red-500/40 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs font-medium px-4 py-2.5 rounded-lg transition-all">Delete Board</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Board delete confirmation modal ───────────────────────────────── -->
+<div>
+    <div id="boardDeleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideBoardDeleteModal()"></div>
+        <div class="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full shadow-2xl p-6 flex flex-col gap-5">
+            <div class="flex flex-col gap-3">
+                <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/10 border border-red-300 dark:border-red-500/20 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Delete this board?</p>
+                    <p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium truncate"></p>
+                    <p class="text-zinc-500 text-xs leading-relaxed">All tickets, columns, comments, and member data will be permanently removed.</p>
+                </div>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="hideBoardDeleteModal()"
+                        class="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Cancel</button>
+                <form method="post">
+                    <button type="submit"
+                            class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-red-200/60 dark:shadow-red-950/40">Delete Board</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Card creation modal ───────────────────────────────────────────── -->
+<div id="cardModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideCardModal()"></div>
+    <div class="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-lg w-full shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-6 pb-4 shrink-0">
+            <p class="text-zinc-900 dark:text-zinc-100 font-medium">New Ticket</p>
+        </div>
+        <form id="cardForm" method="post"
+              class="flex-1 min-h-0 overflow-y-auto kanban-scroll px-6 pb-6 flex flex-col gap-4">
+
+            <!-- Title -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-500 dark:text-zinc-400">Title</label>
+                <input id="cardTitle" name="title" type="text" required maxlength="255"
+                       class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all"/>
+            </div>
+
+            <!-- Description -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-500 dark:text-zinc-400">Description</label>
+                <textarea name="description" rows="3" maxlength="10000"
+                          class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all resize-none"></textarea>
+            </div>
+
+            <!-- Priority + Column row -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-500 dark:text-zinc-400">Priority</label>
+                    <select name="priority"
+                            class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                        <option value="">No Priority</option>
+                        <option>Priority</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-500 dark:text-zinc-400">Type of client</label>
+                    <select name="clientType"
+                            class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                        <option value="">No Client Type</option>
+                        <option>Type</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs text-zinc-500 dark:text-zinc-400">Column</label>
+                    <select id="cardColumnId" name="columnId"
+                            class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
+                        <option>Column</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Deadline -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-500 dark:text-zinc-400">Deadline</label>
+                <input name="deadline" type="date"
+                       class="w-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-violet-300 dark:focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all [color-scheme:dark]"/>
+            </div>
+
+            <!-- Color picker -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-500 dark:text-zinc-400">Color</label>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="color" value="" class="hidden peer" checked>
+                        <span class="w-5 h-5 rounded-full border-2 border-zinc-300 dark:border-zinc-600 peer-checked:border-violet-400 peer-checked:ring-2 peer-checked:ring-violet-400/30 transition-all bg-zinc-100 dark:bg-zinc-800"></span>
+                        <span class="text-xs text-zinc-500">None</span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="color" class="hidden peer">
+                        <span
+                              class="block w-5 h-5 rounded-full border-2 border-transparent peer-checked:border-zinc-900 dark:peer-checked:border-white peer-checked:ring-2 peer-checked:ring-zinc-900/20 dark:peer-checked:ring-white/30 transition-all hover:scale-110"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Assignees -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-500 dark:text-zinc-400">Assignees</label>
+                <div id="assigneeChips" class="flex flex-wrap gap-1.5"></div>
+                <div id="assigneeSearchWrapper" class="relative">
+                    <div class="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 focus-within:border-violet-300 dark:focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/>
+                        </svg>
+                        <input type="text" id="assigneeSearch"
+                               autocomplete="off"
+                               oninput="onUserInput('assignee', this.value)"
+                               class="flex-1 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none"/>
+                    </div>
+                    <div id="assigneeDropdown"
+                         class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto kanban-scroll"></div>
+                </div>
+            </div>
+
+            <!-- Watchers -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs text-zinc-500 dark:text-zinc-400">Watchers</label>
+                <div id="watcherChips" class="flex flex-wrap gap-1.5"></div>
+                <div id="watcherSearchWrapper" class="relative">
+                    <div class="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/60 rounded-lg px-3 py-2 focus-within:border-violet-300 dark:focus-within:border-violet-500/60 focus-within:ring-1 focus-within:ring-violet-500/25 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/>
+                        </svg>
+                        <input type="text" id="watcherSearch"
+                               autocomplete="off"
+                               oninput="onUserInput('watcher', this.value)"
+                               class="flex-1 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none"/>
+                    </div>
+                    <div id="watcherDropdown"
+                         class="hidden absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto kanban-scroll"></div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 justify-end pt-1">
+                <button type="button" onclick="hideCardModal()"
+                        class="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Cancel</button>
+                <button type="submit"
+                        class="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-violet-200/60 dark:shadow-violet-950/40">Create Ticket</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Card delete confirmation modal ────────────────────────────────── -->
+<div id="cardDeleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideCardDeleteModal()"></div>
+    <div class="relative bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full shadow-2xl p-6 flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-500/10 border border-red-300 dark:border-red-500/20 flex items-center justify-center shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                </div>
+                <div class="flex flex-col gap-0.5 min-w-0">
+                    <p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium">Delete this ticket?</p>
+                    <p id="cardDeleteTitle" class="text-zinc-500 text-xs truncate"></p>
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-3 justify-end">
+            <button type="button" onclick="hideCardDeleteModal()"
+                    class="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Cancel</button>
+            <form id="cardDeleteForm" method="post">
+                <input type="hidden"/>
+                <button type="submit"
+                        class="bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors shadow-md shadow-red-200/60 dark:shadow-red-950/40">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── Drag-and-drop error toast ─────────────────────────────────────── -->
+<div id="dndToast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-50 dark:bg-red-900/90 border border-red-300 dark:border-red-700/60 text-red-800 dark:text-red-200 text-sm px-4 py-2.5 rounded-xl shadow-xl backdrop-blur-sm"></div>
+
+<!-- ── Header ────────────────────────────────────────────────────────── -->
+<header class="h-14 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between px-6 shrink-0 bg-white dark:bg-[#0c0c0f]">
+    <div class="flex items-center gap-4 min-w-0">
+        <a href="/apps/boards" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm">Back to Boards</span>
+        </a>
+        <span class="text-zinc-400 dark:text-zinc-700 shrink-0">|</span>
+        <span class="text-zinc-700 dark:text-zinc-300 text-sm font-medium truncate">Board</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+        <button onclick="showNotif()" class="relative text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors p-1.5 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+            </svg>
+            <span
+                  class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full text-white flex items-center justify-center"
+                  style="font-size:9px;font-family:'JetBrains Mono',monospace;"></span>
+        </button>
+        <button onclick="showSettings()" class="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors p-1.5 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </button>
+        <div class="w-px h-4 bg-zinc-100 dark:bg-zinc-800 mx-1"></div>
+        <span class="text-xs text-zinc-500 hidden sm:block">user</span>
+        <form method="post">
+            <button type="submit" class="text-zinc-400 dark:text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- ── Description sub-bar ───────────────────────────────────────────── -->
+<div
+     class="border-b border-zinc-200 dark:border-zinc-800/40 px-6 py-2 shrink-0 bg-white dark:bg-[#0c0c0f]">
+    <p class="text-zinc-500 text-xs truncate"></p>
+</div>
+
+<!-- ── Card error flash ───────────────────────────────────────────────── -->
+<div
+     class="shrink-0 px-6 py-2.5 bg-red-100 dark:bg-red-500/10 border-b border-red-300 dark:border-red-500/20 flex items-center justify-between gap-3">
+    <p class="text-red-600 dark:text-red-400 text-sm"></p>
+    <button type="button" onclick="this.parentElement.remove()" class="text-red-400/60 hover:text-red-600 dark:hover:text-red-400 transition-colors p-0.5 rounded shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+
+<!-- ── Main: columns area ────────────────────────────────────────────── -->
+<main class="flex-1 min-h-0 overflow-x-auto">
+
+    <!-- Empty state: no columns -->
+    <div
+         class="h-full flex flex-col items-center justify-center gap-3 p-12">
+        <div class="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700/40 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-zinc-400 dark:text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+            </svg>
+        </div>
+        <p class="text-zinc-500 dark:text-zinc-400 text-sm font-medium">No columns configured yet.</p>
+    </div>
+
+    <!-- Columns -->
+    <div
+         class="grid auto-rows-fr gap-4 px-6 py-4 min-w-full h-full">
+
+        <div
+             class="kanban-column flex flex-col bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/60 rounded-2xl h-full"
+             ondragover="event.preventDefault(); this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')">
+
+            <!-- Column header -->
+            <div class="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800/60 flex items-center justify-between shrink-0">
+                <p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium truncate">Column</p>
+                <span class="text-zinc-400 dark:text-zinc-600 text-xs shrink-0 ml-2"
+                      style="font-family:'JetBrains Mono',monospace;">0</span>
+            </div>
+
+            <!-- Cards -->
+            <div class="card-list flex-1 min-h-0 overflow-y-auto kanban-scroll p-3 flex flex-col gap-2">
+
+                <div
+                     class="drop-placeholder flex items-center justify-center py-6">
+                    <p class="text-zinc-400 dark:text-zinc-700 text-xs">No tickets</p>
+                </div>
+
+                <!-- Card tile -->
+                <div class="group relative rounded-xl h-[160px]"
+                     draggable="true"
+                     ondragend="endDrag(event)">
+
+                    <!-- Trash icon (appears on hover) -->
+                    <button type="button"
+                            onclick="showCardDeleteModal(this, event)"
+                            class="absolute bottom-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-900/60 border border-zinc-200 dark:border-zinc-700/40 hover:border-red-300 dark:hover:border-red-600/40 text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                    </button>
+
+                    <!-- Card link — fixed height, flex column -->
+                    <a
+                       draggable="false"
+                       class="block h-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/60 rounded-xl overflow-hidden hover:border-zinc-200 dark:hover:border-zinc-700 hover:shadow-lg hover:shadow-black/30 transition-all duration-150 cursor-pointer flex flex-col">
+
+                        <!-- Color accent bar -->
+                        <div
+                             class="h-[3px] w-full shrink-0"></div>
+
+                        <!-- Main content -->
+                        <div class="flex-1 min-h-0 px-3 pt-2.5 pb-2 flex flex-col gap-1.5 overflow-hidden">
+
+                            <!-- Priority + deadline row -->
+                            <div class="flex items-center gap-2 min-h-[18px]">
+                                <span
+                                      style="font-family:'JetBrains Mono',monospace;">
+                                    <span></span>
+                                    <span></span>
+                                </span>
+                                <span></span>
+                                <!-- Deadline — colour-coded: red = overdue, amber = due within 3 days, zinc = future -->
+                                <span
+                                      style="font-family:'JetBrains Mono',monospace;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5"/>
+                                    </svg>
+                                    <span></span>
+                                </span>
+                            </div>
+
+                            <!-- Title -->
+                            <p class="text-zinc-900 dark:text-zinc-100 text-sm font-medium leading-snug line-clamp-2 pr-5"></p>
+
+                            <!-- Description — 1-line preview -->
+                            <p
+                               class="text-zinc-500 text-xs leading-relaxed line-clamp-1"></p>
+                        </div>
+
+                        <!-- Footer: assignees + counts -->
+                        <div class="border-t border-zinc-200 dark:border-zinc-800/40 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
+                            <!-- Assignee avatars (up to 2, overlapping) -->
+                            <div class="flex items-center">
+                                <th:block>
+                                    <div class="w-5 h-5 rounded-full flex items-center justify-center border-[1.5px] border-zinc-200 dark:border-zinc-900 shrink-0"
+                                         style="font-size:9px;font-family:'JetBrains Mono',monospace;">
+                                        <span></span>
+                                    </div>
+                                </th:block>
+                                <span
+                                      class="text-zinc-400 dark:text-zinc-700 text-[10px]" style="font-family:'JetBrains Mono',monospace;">—</span>
+                            </div>
+                            <!-- Comment + watcher counts -->
+                            <div class="flex items-center gap-2">
+                                <span
+                                      class="inline-flex items-center gap-0.5 text-[10px] text-zinc-400 dark:text-zinc-600"
+                                      style="font-family:'JetBrains Mono',monospace;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                                    </svg>
+                                    <span></span>
+                                </span>
+                                <span
+                                      class="inline-flex items-center gap-0.5 text-[10px] text-zinc-400 dark:text-zinc-600"
+                                      style="font-family:'JetBrains Mono',monospace;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span></span>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Add ticket button -->
+            <div class="p-3 border-t border-zinc-200 dark:border-zinc-800/40 shrink-0">
+                <button
+                        class="w-full flex items-center gap-1.5 text-zinc-400 dark:text-zinc-600 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 text-xs py-1.5 px-2 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    <span>New Ticket</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    const BOARD_ID = /*[[${board.id}]]*/ 0;
+    const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]').content;
+    const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]').content;
+    const DND_ERROR_MSG = document.getElementById('dndToast').dataset.msg;
+    const BOARD_MEMBER_IDS = new Set(/*[[${boardMembers.![id]}]]*/ []);
+    const OPEN_SETTINGS_ON_LOAD = /*[[${settingsError != null}]]*/ false;
+
+    // ── Notifications panel ─────────────────────────────────────────────
+    function showNotif() {
+        document.getElementById('notifOverlay').classList.remove('hidden');
+        document.getElementById('notifPanel').classList.remove('hidden');
+    }
+    function hideNotif() {
+        document.getElementById('notifOverlay').classList.add('hidden');
+        document.getElementById('notifPanel').classList.add('hidden');
+    }
+
+    // ── Settings panel ──────────────────────────────────────────────────
+    function showSettings() {
+        const overlay = document.getElementById('settingsOverlay');
+        const panel   = document.getElementById('settingsPanel');
+        if (overlay) overlay.classList.remove('hidden');
+        if (panel)   panel.classList.remove('hidden');
+    }
+    function hideSettings() {
+        const overlay = document.getElementById('settingsOverlay');
+        const panel   = document.getElementById('settingsPanel');
+        if (overlay) overlay.classList.add('hidden');
+        if (panel)   panel.classList.add('hidden');
+    }
+
+    // ── Card modal ──────────────────────────────────────────────────────
+    function showCardModal(columnId) {
+        const sel = document.getElementById('cardColumnId');
+        if (sel) sel.value = columnId;
+        document.getElementById('cardModal').classList.remove('hidden');
+        setTimeout(() => {
+            const t = document.getElementById('cardTitle');
+            if (t) t.focus();
+        }, 50);
+    }
+    function hideCardModal() {
+        document.getElementById('cardModal').classList.add('hidden');
+        document.getElementById('cardForm').reset();
+        clearUserPicker('assignee');
+        clearUserPicker('watcher');
+    }
+
+    // ── Auto-open settings panel on error ───────────────────────────────
+    if (OPEN_SETTINGS_ON_LOAD) showSettings();
+
+    // ── Board delete modal ──────────────────────────────────────────────
+    function showBoardDeleteModal() {
+        document.getElementById('boardDeleteModal').classList.remove('hidden');
+    }
+    function hideBoardDeleteModal() {
+        document.getElementById('boardDeleteModal').classList.add('hidden');
+    }
+
+    // ── Keyboard shortcuts ──────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            hideCardModal(); hideNotif(); hideSettings(); hideCardDeleteModal();
+            hideBoardDeleteModal();
+            closeDropdown('assignee'); closeDropdown('watcher');
+            closeMemberDropdown();
+        }
+    });
+
+    // ── Drag-and-drop ───────────────────────────────────────────────────
+    let dragCardId   = null;
+    let dragOrigColId = null;
+    let dragCardEl   = null;
+    let dragOrigColEl = null;
+
+    function startDrag(event, cardId, columnId) {
+        dragCardId    = cardId;
+        dragCardEl    = event.currentTarget;
+        dragOrigColEl = dragCardEl.closest('.kanban-column').querySelector('.card-list');
+        // Read from DOM so repeated moves within a session use the actual current column
+        dragOrigColId = +dragCardEl.closest('.kanban-column').dataset.columnId;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', cardId);
+        setTimeout(() => dragCardEl && dragCardEl.classList.add('card-dragging'), 0);
+    }
+
+    function endDrag(event) {
+        event.currentTarget.classList.remove('card-dragging');
+        document.querySelectorAll('.kanban-column').forEach(c => c.classList.remove('drag-over'));
+    }
+
+    async function handleDrop(event, newColumnId) {
+        event.preventDefault();
+        const col = event.currentTarget;
+        col.classList.remove('drag-over');
+
+        if (!dragCardId || dragOrigColId === newColumnId) return;
+
+        const cardEl = dragCardEl;
+        const newList = col.querySelector('.card-list');
+
+        // Optimistically move the card in the DOM
+        if (newList && cardEl) {
+            const placeholder = newList.querySelector('.drop-placeholder');
+            if (placeholder) placeholder.remove();
+            newList.appendChild(cardEl);
+        }
+
+        const savedCardId   = dragCardId;
+        const savedOrigColEl = dragOrigColEl;
+        const savedCardEl   = cardEl;
+        dragCardId = null; dragOrigColId = null; dragCardEl = null; dragOrigColEl = null;
+
+        try {
+            const resp = await fetch(`/apps/boards/${BOARD_ID}/cards/${savedCardId}/move`, {
+                method:  'POST',
+                headers: { [CSRF_HEADER]: CSRF_TOKEN, 'Content-Type': 'application/x-www-form-urlencoded' },
+                body:    `columnId=${newColumnId}`
+            });
+            if (!resp.ok) throw new Error('move failed');
+        } catch (e) {
+            // Revert: move card back to original column
+            if (savedOrigColEl && savedCardEl) {
+                const ph = savedOrigColEl.querySelector('.drop-placeholder');
+                if (ph) ph.remove();
+                savedOrigColEl.appendChild(savedCardEl);
+            }
+            showDndError();
+        }
+    }
+
+    function showDndError() {
+        const toast = document.getElementById('dndToast');
+        toast.textContent = DND_ERROR_MSG;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // ── Card delete modal ───────────────────────────────────────────────
+    function showCardDeleteModal(btn, event) {
+        event.stopPropagation();
+        event.preventDefault();
+        const wrapper = btn.closest('[data-card-id]');
+        const cardId    = wrapper.dataset.cardId;
+        document.getElementById('cardDeleteTitle').textContent = wrapper.dataset.cardTitle;
+        document.getElementById('cardDeleteForm').action = '/apps/boards/' + BOARD_ID + '/cards/' + cardId + '/delete';
+        document.getElementById('cardDeleteModal').classList.remove('hidden');
+    }
+    function hideCardDeleteModal() {
+        document.getElementById('cardDeleteModal').classList.add('hidden');
+    }
+
+    // ── User autocomplete (assignees / watchers) ────────────────────────
+    const _debounceTimers = {};
+
+    function onUserInput(type, value) {
+        clearTimeout(_debounceTimers[type]);
+        _debounceTimers[type] = setTimeout(() => fetchUserResults(type, value.trim()), 250);
+    }
+
+    async function fetchUserResults(type, q) {
+        if (q.length < 1) { closeDropdown(type); return; }
+        try {
+            const resp = await fetch(`/apps/boards/${BOARD_ID}/users/search?q=${encodeURIComponent(q)}`);
+            if (!resp.ok) return;
+            const users = await resp.json();
+            const picked = getPickedIds(type);
+            const filtered = users.filter(u => !picked.has(u.id));
+            if (!filtered.length) { closeDropdown(type); return; }
+
+            // Portal appended to body — escapes overflow-y-auto clipping on the modal form
+            let dd = document.getElementById(type + 'DropdownPortal');
+            if (!dd) {
+                dd = document.createElement('div');
+                dd.id = type + 'DropdownPortal';
+                document.body.appendChild(dd);
+            }
+            const input = document.getElementById(type + 'Search');
+            const rect = input.getBoundingClientRect();
+            Object.assign(dd.style, {
+                display: 'block', position: 'fixed', zIndex: '9999',
+                top: (rect.bottom + 4) + 'px', left: rect.left + 'px', width: rect.width + 'px',
+                maxHeight: '13rem', overflowY: 'auto', scrollbarWidth: 'thin',
+                background: 'var(--dd-bg)', border: '1px solid var(--dd-border)',
+                borderRadius: '0.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,.8)'
+            });
+            dd.innerHTML = filtered.map(u =>
+                `<button type="button" onclick="pickUser('${type}', ${u.id}, '${escHtml(u.displayName)}')"
+                    style="display:block;width:100%;text-align:left;padding:8px 12px;font-size:14px;color:var(--dd-text);background:transparent;border:none;cursor:pointer;"
+                    onmouseover="this.style.background='var(--dd-hover)'" onmouseout="this.style.background='transparent'">${escHtml(u.displayName)}</button>`
+            ).join('');
+        } catch (_) {}
+    }
+
+    function pickUser(type, id, displayName) {
+        const chips = document.getElementById(type + 'Chips');
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1.5 bg-violet-100 dark:bg-violet-600/20 border border-violet-300 dark:border-violet-500/30 text-violet-700 dark:text-violet-300 text-xs px-2.5 py-1 rounded-full';
+        chip.dataset.userId = id;
+        chip.innerHTML = `${escHtml(displayName)}<button type="button" onclick="removeUser('${type}', this)" class="text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-200 transition-colors leading-none ml-1">&times;</button>`;
+        chips.appendChild(chip);
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = type + 'Ids';
+        hidden.value = id;
+        hidden.dataset.userId = id;
+        chips.appendChild(hidden);
+        document.getElementById(type + 'Search').value = '';
+        closeDropdown(type);
+    }
+
+    function removeUser(type, btn) {
+        const chip = btn.closest('[data-user-id]');
+        const userId = chip.dataset.userId;
+        const chips = document.getElementById(type + 'Chips');
+        chip.remove();
+        const hidden = chips.querySelector(`input[data-user-id="${userId}"]`);
+        if (hidden) hidden.remove();
+    }
+
+    function clearUserPicker(type) {
+        const chips = document.getElementById(type + 'Chips');
+        if (chips) chips.innerHTML = '';
+        const search = document.getElementById(type + 'Search');
+        if (search) search.value = '';
+        closeDropdown(type);
+    }
+
+    function closeDropdown(type) {
+        const portal = document.getElementById(type + 'DropdownPortal');
+        if (portal) portal.style.display = 'none';
+    }
+
+    function getPickedIds(type) {
+        const chips = document.getElementById(type + 'Chips');
+        return new Set(Array.from(chips.querySelectorAll('[data-user-id]'))
+            .map(el => +el.dataset.userId));
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.addEventListener('click', e => {
+        ['assignee', 'watcher'].forEach(type => {
+            const wrapper = document.getElementById(type + 'SearchWrapper');
+            const portal = document.getElementById(type + 'DropdownPortal');
+            if (wrapper && !wrapper.contains(e.target) && !(portal && portal.contains(e.target))) {
+                closeDropdown(type);
+            }
+        });
+        const memberInput = document.getElementById('memberSearch');
+        const memberPortal = document.getElementById('memberDropdownPortal');
+        if (memberInput && !memberInput.contains(e.target) && !(memberPortal && memberPortal.contains(e.target))) {
+            closeMemberDropdown();
+        }
+    });
+
+    // ── Member invite autocomplete ──────────────────────────────────────
+    function onMemberInput(value) {
+        clearTimeout(_debounceTimers['member']);
+        _debounceTimers['member'] = setTimeout(() => fetchMemberResults(value.trim()), 250);
+    }
+
+    async function fetchMemberResults(q) {
+        if (q.length < 1) { closeMemberDropdown(); return; }
+        try {
+            const resp = await fetch(`/apps/boards/${BOARD_ID}/users/search?q=${encodeURIComponent(q)}`);
+            if (!resp.ok) return;
+            const users = await resp.json();
+            const filtered = users.filter(u => !BOARD_MEMBER_IDS.has(u.id));
+
+            let dd = document.getElementById('memberDropdownPortal');
+            if (!dd) {
+                dd = document.createElement('div');
+                dd.id = 'memberDropdownPortal';
+                document.body.appendChild(dd);
+            }
+            const input = document.getElementById('memberSearch');
+            const rect = input.getBoundingClientRect();
+            Object.assign(dd.style, {
+                display: filtered.length ? 'block' : 'none',
+                position: 'fixed', zIndex: '9999',
+                top: (rect.bottom + 4) + 'px', left: rect.left + 'px', width: rect.width + 'px',
+                maxHeight: '12rem', overflowY: 'auto', scrollbarWidth: 'thin',
+                background: 'var(--dd-bg)', border: '1px solid var(--dd-border)',
+                borderRadius: '0.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,.8)'
+            });
+            dd.innerHTML = filtered.map(u =>
+                `<button type="button" onclick="pickMember(${u.id})"
+                    style="display:block;width:100%;text-align:left;padding:8px 12px;font-size:13px;color:var(--dd-text);background:transparent;border:none;cursor:pointer;"
+                    onmouseover="this.style.background='var(--dd-hover)'" onmouseout="this.style.background='transparent'">${escHtml(u.displayName)}</button>`
+            ).join('');
+        } catch (_) {}
+    }
+
+    function closeMemberDropdown() {
+        const portal = document.getElementById('memberDropdownPortal');
+        if (portal) portal.style.display = 'none';
+    }
+
+    function pickMember(id) {
+        document.getElementById('memberInviteUserId').value = id;
+        document.getElementById('memberSearch').value = '';
+        closeMemberDropdown();
+        document.getElementById('memberInviteForm').submit();
+    }
+</script>
+
+
+<button type="button" onclick="__toggleTheme()" aria-label="Toggle theme"
+        class="fixed bottom-4 right-4 z-[60] w-10 h-10 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-lg flex items-center justify-center text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"/>
+    </svg>
+</button>
+<script>function __toggleTheme(){var d=document.documentElement.classList.toggle("dark");try{localStorage.setItem("theme",d?"dark":"light");}catch(e){}}</script>
+</body>
+</html>

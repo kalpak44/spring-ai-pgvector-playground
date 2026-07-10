@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import online.pavelusanli.advisors.GoogleAwareAdvisor;
+import online.pavelusanli.advisors.expansion.ExpansionQueryAdvisor;
 import online.pavelusanli.advisors.rag.RagAdvisor;
 import online.pavelusanli.model.common.Role;
 import online.pavelusanli.model.entity.AppUser;
@@ -17,9 +18,9 @@ import online.pavelusanli.tools.DateTimeTool;
 import online.pavelusanli.tools.GoogleSubAgentTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -42,7 +43,8 @@ public class ChatService {
     private final ChatEntryRepository entryRepo;
     private final UserRepository userRepo;
     private final ChatClient chatClient;
-    private final VectorStore vectorStore;
+    private final ChatModel chatModel;
+    private final HybridSearchService hybridSearchService;
     private final DataSourceRepository dataSourceRepository;
     private final GoogleMcpService googleMcpService;
     private final GoogleSubAgentService googleSubAgentService;
@@ -102,7 +104,8 @@ public class ChatService {
         }
 
         if (hasKbContext) {
-            spec.advisors(RagAdvisor.build(vectorStore).order(10).build());
+            spec.advisors(ExpansionQueryAdvisor.builder(chatModel).order(5).build());
+            spec.advisors(RagAdvisor.build(hybridSearchService).order(10).build());
         }
 
         spec.stream()
