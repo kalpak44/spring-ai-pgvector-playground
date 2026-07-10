@@ -1,14 +1,14 @@
-name: Build and Publish data-source-connector-template
+name: Build and Publish lex-bg connector
 
 on:
   push:
     paths:
-      - 'scripts/data-source-connector-template/**'
+      - 'scripts/lex-bg/**'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/kalpak44/data-source-connector-template
+  IMAGE_NAME: ghcr.io/kalpak44/lex-bg-connector
 
 jobs:
   docker:
@@ -49,8 +49,8 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: ./scripts/data-source-connector-template
-          file: ./scripts/data-source-connector-template/Dockerfile
+          context: ./scripts/lex-bg
+          file: ./scripts/lex-bg/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
@@ -61,7 +61,7 @@ jobs:
       - name: Generate build report
         run: |
           echo "### Docker Image Build Report 🚀" >> "$GITHUB_STEP_SUMMARY"
-          echo "Successfully built and pushed **data-source-connector-template** to GHCR." >> "$GITHUB_STEP_SUMMARY"
+          echo "Successfully built and pushed **lex-bg-connector** to GHCR." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Platforms:** \`linux/amd64\`, \`linux/arm64\`" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
