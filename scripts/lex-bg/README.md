@@ -23,6 +23,8 @@ docker run -p 3200:3200 lex-bg
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3200` | HTTP port |
-| `DELAY_MS` | `300` | Politeness delay between requests |
-| `PRELOAD_PATH` | — | Directory of pre-fetched `.md` files (`{category}/{docId}.md`). Files found here skip a network fetch and provide a real content hash. Newly fetched docs are saved here too. |
-| `PRELOAD` | `false` | After catalog discovery, fetch and cache all documents not already in `PRELOAD_PATH`. |
+| `DELAY_MS` | `1500` | Politeness delay between requests (ms) |
+| `PRELOAD_PATH` | — | Directory of pre-fetched `.md` files (`{category}/{docId}.md`). Files found here are loaded at startup and skip a network fetch. Newly fetched docs are saved here too. A `.preload-meta.json` tracking fetch timestamps is maintained alongside. |
+| `PRELOAD` | `false` | After catalog discovery, fetch and cache all documents not already fresh in `PRELOAD_PATH`. |
+| `PRELOAD_CRON` | — | Cron expression for recurring preload (e.g. `0 2 * * *` for daily at 2 am). |
+| `PRELOAD_MAX_AGE_DAYS` | `7` | How many days before a cached document is considered stale and re-fetched during preload. |
