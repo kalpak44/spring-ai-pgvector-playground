@@ -93,6 +93,10 @@
                               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/25"
                               th:text="|Custom separator · '${p.separator}'|">
                         </span>
+                        <span th:if="${p.strategy.name() == 'AI_CHUNKING'}"
+                              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                            AI semantic
+                        </span>
 
                         <p th:if="${p.description != null and !p.description.isEmpty()}"
                            class="text-zinc-500 text-xs mt-1.5 leading-relaxed"
@@ -167,6 +171,7 @@
                         class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
                     <option value="FIXED_TOKENS">Fixed tokens</option>
                     <option value="CUSTOM_SEPARATOR">Custom separator</option>
+                    <option value="AI_CHUNKING">AI semantic</option>
                 </select>
             </div>
 
@@ -219,6 +224,7 @@
                         class="w-full bg-zinc-800/80 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/25 transition-all">
                     <option value="FIXED_TOKENS">Fixed tokens</option>
                     <option value="CUSTOM_SEPARATOR">Custom separator</option>
+                    <option value="AI_CHUNKING">AI semantic</option>
                 </select>
             </div>
 
@@ -319,16 +325,15 @@
         const strategy = document.getElementById('createStrategy').value;
         const fixed = document.getElementById('createFixedFields');
         const sep = document.getElementById('createSepFields');
-        if (strategy === 'FIXED_TOKENS') {
-            fixed.classList.remove('hidden');
-            sep.classList.add('hidden');
-            sep.classList.remove('flex');
-            document.getElementById('createSeparator').removeAttribute('required');
-        } else {
-            fixed.classList.add('hidden');
-            sep.classList.remove('hidden');
-            sep.classList.add('flex');
+        const isFixed = strategy === 'FIXED_TOKENS';
+        const isSep   = strategy === 'CUSTOM_SEPARATOR';
+        fixed.classList.toggle('hidden', !isFixed);
+        sep.classList.toggle('hidden', !isSep);
+        sep.classList.toggle('flex', isSep);
+        if (isSep) {
             document.getElementById('createSeparator').setAttribute('required', '');
+        } else {
+            document.getElementById('createSeparator').removeAttribute('required');
         }
     }
 
@@ -336,16 +341,15 @@
         const strategy = document.getElementById('editStrategy').value;
         const fixed = document.getElementById('editFixedFields');
         const sep = document.getElementById('editSepFields');
-        if (strategy === 'FIXED_TOKENS') {
-            fixed.classList.remove('hidden');
-            sep.classList.add('hidden');
-            sep.classList.remove('flex');
-            document.getElementById('editSeparator').removeAttribute('required');
-        } else {
-            fixed.classList.add('hidden');
-            sep.classList.remove('hidden');
-            sep.classList.add('flex');
+        const isFixed = strategy === 'FIXED_TOKENS';
+        const isSep   = strategy === 'CUSTOM_SEPARATOR';
+        fixed.classList.toggle('hidden', !isFixed);
+        sep.classList.toggle('hidden', !isSep);
+        sep.classList.toggle('flex', isSep);
+        if (isSep) {
             document.getElementById('editSeparator').setAttribute('required', '');
+        } else {
+            document.getElementById('editSeparator').removeAttribute('required');
         }
     }
 
@@ -388,6 +392,7 @@
             Delete <span class="text-zinc-200 font-medium" id="deleteLabel"></span>? This cannot be undone.
         </p>
         <form id="deleteForm" method="post" class="flex justify-end gap-3">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <button type="button" onclick="closeDeleteModal()"
                     class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2">Cancel</button>
             <button type="submit"

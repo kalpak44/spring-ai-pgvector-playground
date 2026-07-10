@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'AI Assistant — ' + ${ds.name}">AI Assistant — Connector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-zinc-950 min-h-screen flex flex-col" style="font-family:'Outfit',sans-serif;">
+
+<!-- Header -->
+<header class="h-14 border-b border-zinc-800/80 flex items-center justify-between px-6 shrink-0" style="background:#0c0c0f;">
+    <div class="flex items-center gap-4">
+        <a href="/settings/knowledge-base" class="flex items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+            <span class="text-sm">Knowledge Base</span>
+        </a>
+        <span class="text-zinc-700">|</span>
+        <span class="text-zinc-300 text-sm font-medium" th:text="${ds.name}">Connector</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <span class="text-xs text-zinc-500" sec:authentication="name">user</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" title="Sign out" class="text-zinc-600 hover:text-zinc-300 transition-colors p-1 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex flex-col items-center px-6 py-10">
+    <div class="w-full max-w-2xl flex flex-col gap-6">
+
+        <!-- ── Connector info card ─────────────────────────────────────────── -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl p-5">
+            <div class="flex items-start justify-between gap-4">
+
+                <div class="flex items-start gap-3.5 min-w-0">
+                    <div class="shrink-0 w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700/50 flex items-center justify-center mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"/>
+                        </svg>
+                    </div>
+
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <span class="text-zinc-100 font-medium text-sm" th:text="${ds.name}">Name</span>
+
+                            <span id="statusBadge">
+                                <span th:if="${ds.status.name() == 'IDLE'}"
+                                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Synced
+                                </span>
+                                <span th:if="${ds.status.name() == 'SYNCING'}"
+                                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/15 text-violet-400 border border-violet-500/25 animate-pulse">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-violet-400"></span>Syncing…
+                                </span>
+                                <span th:if="${ds.status.name() == 'ERROR'}"
+                                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/15 text-red-400 border border-red-500/25">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Error
+                                </span>
+                                <span th:if="${ds.status.name() == 'NEVER_SYNCED'}"
+                                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-700/50 text-zinc-400 border border-zinc-600/30">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>Never synced
+                                </span>
+                            </span>
+                        </div>
+
+                        <div class="flex flex-col gap-0.5">
+                            <p class="text-zinc-500 text-xs" th:text="${ds.connectorName ?: 'Unknown connector'}">Connector</p>
+                            <p class="text-zinc-600 text-xs font-mono truncate" th:text="${ds.connectorUrl}">url</p>
+                            <div class="flex items-center gap-3 mt-1">
+                                <span th:if="${ds.chunkCount > 0}"
+                                      id="chunkCount"
+                                      class="text-zinc-500 text-xs"
+                                      th:text="${ds.chunkCount + ' chunks'}"></span>
+                                <span th:if="${ds.chunkingProfile != null}"
+                                      class="text-zinc-600 text-xs"
+                                      th:text="${ds.chunkingProfile.name}"></span>
+                                <span th:if="${ds.lastSyncedAt != null}"
+                                      class="text-zinc-700 text-xs"
+                                      th:text="'last synced ' + ${#temporals.format(ds.lastSyncedAt, 'yyyy-MM-dd HH:mm')} + ' UTC'"></span>
+                            </div>
+                            <div th:if="${ds.status.name() == 'ERROR' and ds.errorMessage != null}"
+                                 class="mt-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-mono"
+                                 th:text="${ds.errorMessage}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sync button -->
+                <form th:action="@{/settings/knowledge-base/data-sources/{id}/sync(id=${ds.id})}" method="post" class="shrink-0">
+                    <input type="hidden" name="from" value="detail"/>
+                    <button id="syncBtn" type="submit"
+                            th:disabled="${ds.status.name() == 'SYNCING'}"
+                            class="inline-flex items-center gap-1.5 bg-zinc-800 hover:bg-violet-500/10 border border-zinc-700/60 hover:border-violet-500/40 text-zinc-400 hover:text-violet-400 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                        </svg>
+                        Sync Now
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ── Sync log ────────────────────────────────────────────────────── -->
+        <div class="bg-zinc-900 border border-zinc-800/60 rounded-2xl overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-zinc-800/50 flex items-center justify-between">
+                <span class="text-zinc-300 text-sm font-medium">Sync Log</span>
+                <span id="logMeta" class="text-zinc-700 text-xs" style="font-family:'JetBrains Mono',monospace;"></span>
+            </div>
+
+            <!-- Log entries -->
+            <div id="logEntries"
+                 class="px-5 py-4 min-h-32 max-h-[32rem] overflow-y-auto flex flex-col gap-0.5"
+                 style="font-family:'JetBrains Mono',monospace;">
+                <div class="py-3 text-zinc-700 text-xs">Loading…</div>
+            </div>
+        </div>
+
+        <!-- ── Danger zone ─────────────────────────────────────────────────── -->
+        <div class="rounded-2xl border border-red-900/40 overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-red-900/30" style="background:rgba(239,68,68,0.04);">
+                <p class="text-red-400 text-sm font-medium">Danger Zone</p>
+            </div>
+
+            <div class="px-5 py-5 flex items-start justify-between gap-4" style="background:rgba(239,68,68,0.02);">
+                <div>
+                    <p class="text-zinc-300 text-sm font-medium mb-1">Remove this connector</p>
+                    <p class="text-zinc-500 text-xs">Permanently deletes this data source, all indexed chunks, and the complete sync history. This cannot be undone.</p>
+                </div>
+                <button type="button" onclick="showDeleteConfirm()"
+                        id="deleteBtn"
+                        class="shrink-0 inline-flex items-center gap-1.5 bg-zinc-900 hover:bg-red-500/10 border border-red-900/50 hover:border-red-500/50 text-red-500 text-xs font-medium px-3.5 py-1.5 rounded-lg transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                    Remove
+                </button>
+            </div>
+
+            <!-- Inline confirmation (hidden by default) -->
+            <div id="deleteConfirm" class="hidden px-5 pb-5" style="background:rgba(239,68,68,0.02);">
+                <div class="border border-red-500/30 rounded-xl p-4 bg-red-500/5">
+                    <p class="text-red-300 text-xs font-medium mb-1">Are you sure?</p>
+                    <p class="text-zinc-500 text-xs mb-4">
+                        Type <span class="text-zinc-300 font-mono" th:text="${ds.name}">name</span> to confirm removal.
+                    </p>
+                    <input id="confirmInput" type="text" placeholder="Type connector name…"
+                           oninput="validateConfirm()"
+                           class="w-full bg-zinc-900 border border-red-500/30 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-red-500/60 focus:ring-1 focus:ring-red-500/20 transition-all font-mono mb-4"/>
+                    <div class="flex items-center gap-3 justify-end">
+                        <button type="button" onclick="hideDeleteConfirm()"
+                                class="text-sm text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-1.5">Cancel</button>
+                        <form th:action="@{/settings/knowledge-base/data-sources/{id}/delete(id=${ds.id})}" method="post">
+                            <button id="confirmDeleteBtn" type="submit" disabled
+                                    class="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                                Delete permanently
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script th:inline="javascript">
+    const DS_NAME   = /*[[${ds.name}]]*/ '';
+    const DS_ID     = /*[[${ds.id}]]*/ 0;
+    const DS_STATUS = /*[[${ds.status}]]*/ 'NEVER_SYNCED';
+
+    // ── Danger zone ──────────────────────────────────────────────────────────
+    function showDeleteConfirm() {
+        document.getElementById('deleteBtn').classList.add('hidden');
+        document.getElementById('deleteConfirm').classList.remove('hidden');
+        setTimeout(() => document.getElementById('confirmInput').focus(), 50);
+    }
+    function hideDeleteConfirm() {
+        document.getElementById('deleteConfirm').classList.add('hidden');
+        document.getElementById('deleteBtn').classList.remove('hidden');
+        document.getElementById('confirmInput').value = '';
+        document.getElementById('confirmDeleteBtn').disabled = true;
+    }
+    function validateConfirm() {
+        const val = document.getElementById('confirmInput').value.trim();
+        document.getElementById('confirmDeleteBtn').disabled = (val !== DS_NAME);
+    }
+
+    // ── Sync log ─────────────────────────────────────────────────────────────
+    let activeStream = null;
+
+    const TYPE_LABELS = {
+        SYNC_STARTED: 'STARTED', DOC_SKIPPED: 'SKIP', DOC_FETCHED: 'FETCH',
+        DOC_CHUNKED: 'CHUNK', DOC_REMOVED: 'REMOVE', SYNC_COMPLETE: 'DONE', SYNC_ERROR: 'ERROR',
+    };
+    const LEVEL_DOT = { INFO: 'bg-emerald-500', WARN: 'bg-amber-500', ERROR: 'bg-red-500' };
+    const TYPE_COLOR = {
+        SYNC_STARTED: 'text-violet-400', DOC_SKIPPED: 'text-zinc-600', DOC_FETCHED: 'text-sky-500',
+        DOC_CHUNKED: 'text-violet-400', DOC_REMOVED: 'text-amber-500',
+        SYNC_COMPLETE: 'text-emerald-400', SYNC_ERROR: 'text-red-400',
+    };
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+    }
+
+    function appendLogEntry(entry) {
+        const container = document.getElementById('logEntries');
+        // clear the loading placeholder on first real entry
+        const ph = container.querySelector('.text-zinc-700');
+        if (ph && (ph.textContent.includes('Loading') || ph.textContent.includes('No sync'))) ph.remove();
+
+        const dotClass  = LEVEL_DOT[entry.level]  || 'bg-zinc-600';
+        const typeClass = TYPE_COLOR[entry.type]   || 'text-zinc-500';
+        const label     = TYPE_LABELS[entry.type]  || entry.type;
+        const time      = entry.createdAt ? entry.createdAt.substring(11, 19) : '';
+
+        let extras = '';
+        const d = entry.details || {};
+        if (Array.isArray(d.keywords) && d.keywords.length) {
+            extras += '<div class="flex flex-wrap gap-1 mt-1">' +
+                d.keywords.slice(0, 10).map(k =>
+                    `<span class="px-1.5 py-px rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 text-[10px]">${esc(k)}</span>`
+                ).join('') + '</div>';
+        }
+        if (Array.isArray(d.articles) && d.articles.length) {
+            extras = `<div class="text-zinc-600 text-[10px] mt-0.5">${d.articles.map(esc).join(' · ')}</div>` + extras;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'flex items-start gap-2 py-1.5 border-b border-zinc-800/30 last:border-0';
+        row.innerHTML = `
+            <span class="mt-[5px] w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-baseline gap-2 flex-wrap">
+                    <span class="text-[10px] font-semibold tracking-wider w-14 shrink-0 ${typeClass}">${label}</span>
+                    <span class="text-zinc-400 text-[11px] break-all">${esc(entry.message)}</span>
+                    <span class="ml-auto text-zinc-700 text-[10px] shrink-0 tabular-nums">${time}</span>
+                </div>
+                ${extras}
+            </div>`;
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function setLogMeta(text) {
+        document.getElementById('logMeta').textContent = text;
+    }
+
+    function updateStatusBadge(status) {
+        const wrap = document.getElementById('statusBadge');
+        if (!wrap) return;
+        const map = {
+            IDLE:  '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Synced</span>',
+            ERROR: '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/15 text-red-400 border border-red-500/25"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>Error</span>',
+        };
+        if (map[status]) wrap.innerHTML = map[status];
+        if (status !== 'SYNCING') {
+            const btn = document.getElementById('syncBtn');
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    function subscribeToStream() {
+        if (activeStream) { activeStream.close(); }
+        document.getElementById('logEntries').innerHTML = '';
+        setLogMeta('live');
+
+        const es = new EventSource('/api/knowledge-base/data-sources/' + DS_ID + '/sync-stream');
+        activeStream = es;
+
+        es.onmessage = function(e) {
+            try {
+                const entry = JSON.parse(e.data);
+                appendLogEntry(entry);
+                if (entry.type === 'SYNC_COMPLETE') {
+                    updateStatusBadge('IDLE');
+                    setLogMeta('done');
+                    es.close(); activeStream = null;
+                } else if (entry.type === 'SYNC_ERROR') {
+                    updateStatusBadge('ERROR');
+                    setLogMeta('error');
+                    es.close(); activeStream = null;
+                }
+            } catch (_) {}
+        };
+        es.onerror = function() {
+            es.close(); activeStream = null;
+            setLogMeta('disconnected');
+        };
+    }
+
+    function loadHistory() {
+        fetch('/api/knowledge-base/data-sources/' + DS_ID + '/sync-log')
+            .then(r => r.json())
+            .then(entries => {
+                const container = document.getElementById('logEntries');
+                container.innerHTML = '';
+                if (!entries.length) {
+                    container.innerHTML = '<div class="py-3 text-zinc-700 text-xs">No sync history yet.</div>';
+                    return;
+                }
+                entries.forEach(appendLogEntry);
+                setLogMeta(entries.length + ' entries');
+
+                // group by run for visual separation
+                let lastRun = null;
+                container.querySelectorAll('[data-run]').forEach(el => {
+                    if (el.dataset.run !== lastRun) {
+                        const sep = document.createElement('div');
+                        sep.className = 'pt-2 mt-1 border-t border-zinc-800/60 text-zinc-700 text-[10px] mb-1';
+                        sep.textContent = 'run ' + el.dataset.run.slice(0, 8);
+                        container.insertBefore(sep, el);
+                        lastRun = el.dataset.run;
+                    }
+                });
+            })
+            .catch(() => {
+                document.getElementById('logEntries').innerHTML =
+                    '<div class="py-3 text-red-500/70 text-xs">Failed to load log.</div>';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (DS_STATUS === 'SYNCING') {
+            subscribeToStream();
+        } else {
+            loadHistory();
+        }
+    });
+</script>
+
+</body>
+</html>

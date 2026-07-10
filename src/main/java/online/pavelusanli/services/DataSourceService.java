@@ -29,6 +29,11 @@ public class DataSourceService {
         return repo.findAllByOrderByCreatedAtDesc();
     }
 
+    @Transactional(readOnly = true)
+    public DataSource findById(Long id) {
+        return repo.findById(id).orElseThrow();
+    }
+
     public DataSource create(String name, String connectorUrl, String connectorName,
                              Map<String, String> config, Long chunkingProfileId) {
         ChunkingProfile profile = chunkingProfileId != null

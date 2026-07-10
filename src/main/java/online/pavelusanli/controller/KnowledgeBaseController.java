@@ -32,6 +32,12 @@ public class KnowledgeBaseController {
         return "settings-knowledge-base";
     }
 
+    @GetMapping("/data-sources/{id}")
+    public String detailPage(@PathVariable Long id, Model model) {
+        model.addAttribute("ds", dataSourceService.findById(id));
+        return "settings-knowledge-base-detail";
+    }
+
     @PostMapping("/data-sources")
     public String save(@RequestParam String name,
                        @RequestParam String connectorUrl,
@@ -58,11 +64,14 @@ public class KnowledgeBaseController {
     }
 
     @PostMapping("/data-sources/{id}/sync")
-    public String sync(@PathVariable Long id) {
+    public String sync(@PathVariable Long id,
+                       @RequestParam(defaultValue = "list") String from) {
         if (dataSourceService.markSyncing(id)) {
             syncJobService.triggerSync(id);
         }
-        return "redirect:/settings/knowledge-base";
+        return "detail".equals(from)
+                ? "redirect:/settings/knowledge-base/data-sources/" + id
+                : "redirect:/settings/knowledge-base";
     }
 
     @PostMapping("/data-sources/{id}/delete")

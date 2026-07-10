@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static online.pavelusanli.advisors.expansion.ExpansionQueryAdvisor.ENRICHED_QUESTION;
+import static online.pavelusanli.advisors.expansion.ExpansionQueryAdvisor.ENRICHED_QUESTIONS;
 
 @Slf4j
 @Builder
@@ -35,12 +36,21 @@ public class RagAdvisor implements BaseAdvisor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
         String originalQuestion = chatClientRequest.prompt().getUserMessage().getText();
-        String queryToRag = chatClientRequest.context()
-                .getOrDefault(ENRICHED_QUESTION, originalQuestion).toString();
 
-        List<Document> documents = hybridSearchService.search(queryToRag, topK);
+        List<String> queries;
+        Object enrichedList = chatClientRequest.context().get(ENRICHED_QUESTIONS);
+        if (enrichedList instanceof List<?> list && !list.isEmpty()) {
+            queries = (List<String>) list;
+        } else {
+            String single = chatClientRequest.context()
+                    .getOrDefault(ENRICHED_QUESTION, originalQuestion).toString();
+            queries = List.of(single);
+        }
+
+        List<Document> documents = hybridSearchService.search(queries, topK);
 
         if (documents.isEmpty()) {
             return chatClientRequest;
@@ -50,11 +60,27 @@ public class RagAdvisor implements BaseAdvisor {
         StringBuilder context = new StringBuilder();
         for (Document doc : documents) {
             Map<String, Object> meta = doc.getMetadata();
-            String sourceName = meta.getOrDefault("data_source_name", "").toString();
-            String sourceFile = meta.getOrDefault("source_file", "").toString();
+            String sourceName  = meta.getOrDefault("data_source_name", "").toString();
+            String sourceFile  = meta.getOrDefault("source_file",      "").toString();
+            String sourceUrl   = meta.getOrDefault("sourceUrl",         "").toString();
+            String crawledAt   = meta.getOrDefault("crawledAt",         "").toString();
+
+            String article  = meta.getOrDefault("article",  "").toString();
+            String topic    = meta.getOrDefault("topic",    "").toString();
+
             context.append("[").append(idx.getAndIncrement()).append("] ");
-            if (!sourceName.isBlank()) context.append(sourceName).append(" — ");
-            if (!sourceFile.isBlank()) context.append(sourceFile);
+            if (!sourceName.isBlank()) context.append(sourceName);
+            if (!crawledAt.isBlank()) {
+                context.append(" (checked: ").append(crawledAt, 0, Math.min(10, crawledAt.length())).append(")");
+            }
+            context.append(" — ");
+            context.append(sourceUrl.isBlank() ? sourceFile : sourceUrl);
+            if (!article.isBlank() || !topic.isBlank()) {
+                context.append("\n    ");
+                if (!article.isBlank()) context.append(article);
+                if (!article.isBlank() && !topic.isBlank()) context.append(" · ");
+                if (!topic.isBlank()) context.append(topic);
+            }
             context.append("\n    \"").append(doc.getText().strip()).append("\"\n\n");
         }
 

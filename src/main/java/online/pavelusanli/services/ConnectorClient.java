@@ -28,7 +28,7 @@ public class ConnectorClient {
 
     public record ConnectorDocument(String id, String path, String contentHash) {}
 
-    public record ConnectorFetchResult(String path, String rawContent) {}
+    public record ConnectorFetchResult(String path, String rawContent, Map<String, Object> metadata) {}
 
     private record DocumentsResponse(List<ConnectorDocument> documents) {}
 
@@ -36,8 +36,8 @@ public class ConnectorClient {
 
     public ConnectorClient() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(5_000);
-        factory.setReadTimeout(15_000);
+        factory.setConnectTimeout(10_000);
+        factory.setReadTimeout(60_000);
         this.restClient = RestClient.builder().requestFactory(factory).build();
     }
 
