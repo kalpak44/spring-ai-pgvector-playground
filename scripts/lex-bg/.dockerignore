@@ -1,0 +1,4 @@
+node_modules
+.dockerignore
+*.sh
+*.md

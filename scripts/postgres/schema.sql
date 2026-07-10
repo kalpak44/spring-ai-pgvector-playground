@@ -254,6 +254,10 @@ CREATE INDEX IF NOT EXISTS idx_board_activity_board_id
     VALUES ('Default', 'General purpose — 200 tokens with 20-token overlap', 'FIXED_TOKENS', 200, 20)
     ON CONFLICT DO NOTHING;
 
+    INSERT INTO chunking_profile (name, description, strategy)
+    VALUES ('AI Semantic', 'LLM decides split points per article/section and adds topic and keyword metadata to each chunk', 'AI_CHUNKING')
+    ON CONFLICT DO NOTHING;
+
 
 -- =================================================
 -- Knowledge Base — Data Sources
@@ -288,9 +292,30 @@ ALTER TABLE loaded_document
 -- Knowledge Base — Hybrid Search (FTS on vector_store)
 -- =================================================
 
+-- 'simple' tokenises without language-specific stemming — correct for multilingual content
+ALTER TABLE vector_store DROP COLUMN IF EXISTS fts;
 ALTER TABLE vector_store
-    ADD COLUMN IF NOT EXISTS fts tsvector
-        GENERATED ALWAYS AS (to_tsvector('english', coalesce(content, ''))) STORED;
+    ADD COLUMN fts tsvector
+        GENERATED ALWAYS AS (to_tsvector('simple', coalesce(content, ''))) STORED;
 
-CREATE INDEX IF NOT EXISTS idx_vector_store_fts
-    ON vector_store USING GIN(fts);
+DROP INDEX IF EXISTS idx_vector_store_fts;
+CREATE INDEX idx_vector_store_fts ON vector_store USING GIN(fts);
+
+
+-- =================================================
+-- Sync Log
+-- =================================================
+
+CREATE TABLE IF NOT EXISTS sync_log_entry (
+    id             BIGSERIAL   PRIMARY KEY,
+    data_source_id BIGINT      NOT NULL REFERENCES data_source(id) ON DELETE CASCADE,
+    sync_run_id    VARCHAR(36) NOT NULL,
+    level          VARCHAR(8)  NOT NULL,
+    event_type     VARCHAR(32) NOT NULL,
+    message        TEXT        NOT NULL,
+    details        JSONB,
+    created_at     TIMESTAMP   NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sync_log_ds_created
+    ON sync_log_entry(data_source_id, created_at DESC);

@@ -10,7 +10,6 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY index.js ./
-COPY data ./data
 
 EXPOSE 3200
 
