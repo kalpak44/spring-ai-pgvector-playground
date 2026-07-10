@@ -338,7 +338,9 @@ app.post('/connector/fetch', async (req, res) => {
     const cached = contentCache.get(documentId);
     if (cached) {
         const docId = documentId.slice(slash + 1);
-        return res.json({ path: `${BASE_URL}/laws/ldoc/${docId}`, rawContent: cached });
+        const url = `${BASE_URL}/laws/ldoc/${docId}`;
+        const crawledAt = preloadMeta[documentId]?.fetchedAt ?? new Date().toISOString();
+        return res.json({ path: url, rawContent: cached, metadata: { sourceUrl: url, crawledAt } });
     }
 
     const categoryId = documentId.slice(0, slash);
@@ -356,12 +358,13 @@ app.post('/connector/fetch', async (req, res) => {
     if (!body) return res.status(404).json({ error: 'Document has no content' });
 
     const rawContent = title ? `# ${title}\n\n${body}` : body;
+    const crawledAt = new Date().toISOString();
     contentCache.set(documentId, rawContent);
     saveToPath(docId, categoryId, rawContent);
-    preloadMeta[documentId] = { fetchedAt: new Date().toISOString() };
+    preloadMeta[documentId] = { fetchedAt: crawledAt };
     savePreloadMeta(preloadMeta);
 
-    res.json({ path: url, rawContent });
+    res.json({ path: url, rawContent, metadata: { sourceUrl: url, crawledAt } });
 });
 
 app.listen(PORT, () => {
