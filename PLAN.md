@@ -60,12 +60,16 @@ POST /connector/documents
 
 POST /connector/fetch
   → { "config": { ... }, "documentId": "sha:abc123" }
-  ← { "path": "traffic/art-12.txt", "rawContent": "Art. 12. Driving without a license..." }
+  ← { "path": "traffic/art-12.txt", "rawContent": "Art. 12. Driving without a license...",
+      "metadata": { "sourceUrl": "https://...", "crawledAt": "2026-07-10T..." } }
 ```
 
 `path` is a human-readable identifier — a file path or a full URL. For web crawlers it becomes
 the clickable `source_url` in citations directly. `secret: true` fields are masked in the UI
 and encrypted by the main app before storage; the connector always receives decrypted values.
+
+The `metadata` field is optional; connectors can return arbitrary key→value pairs that are
+merged into each chunk's metadata in the vector store.
 
 ### Connector types the contract covers
 
@@ -73,31 +77,23 @@ and encrypted by the main app before storage; the connector always receives decr
 |---|---|---|
 | Filesystem (reference) | Local `.txt` / `.md` files | `glob(path, pattern)` |
 | GitHub | Repo via REST API | `GET /git/trees` filtered by pattern |
-| Web crawler (lex.bg, etc.) | Public / internal site | Crawl sitemap or link pattern, extract via CSS selector |
+| lex.bg (live) | Bulgarian legislation site | Crawl tree pages, extract via CSS selector |
 | Notion / Confluence | Workspace API | Fetch pages from space/database |
 | REST API proxy | Any internal API | Call endpoint, map response to document list |
 
 ### Reference connector — filesystem (Express.js)
 
 `scripts/data-source-connector-template/` — a minimal Node.js/Express app implementing all
-4 endpoints by reading files from a local directory. Serves as:
+4 endpoints by reading files from a local directory.
 
-1. End-to-end proof the contract works with the main app
-2. Copy-paste starting point for any new connector in any language
+### lex.bg connector (live — `scripts/lex-bg/`)
 
-### Web crawler connector fields example (lex.bg)
-
-```json
-"fields": [
-  { "key": "baseUrl",    "label": "Base URL",     "default": "https://lex.bg" },
-  { "key": "urlPattern", "label": "URL pattern",  "default": "/laws/*" },
-  { "key": "selector",   "label": "CSS selector", "default": "div.law-content" },
-  { "key": "maxPages",   "label": "Max pages",    "default": "100" }
-]
-```
-
-The crawler connector handles all HTML fetching, pagination, and content extraction internally.
-The main app only ever receives clean plain text.
+A Node.js/Express crawler for the Bulgarian legislation database:
+- Discovers all laws, codes, regulations, rules, and the Constitution from the category tree pages
+- Builds an in-memory catalog (rebuilt every 24 h)
+- Optional `PRELOAD=true` mode: pre-fetches all document content on startup and on a cron schedule, saving to a local file cache (`PRELOAD_PATH`)
+- `GET /connector/status` — exposes preload stats (cached, total, running, lastRunAt)
+- Fetch returns `metadata: { sourceUrl, crawledAt }` for proper citations
 
 ### ConnectorClient (main app)
 
@@ -108,8 +104,10 @@ ConnectorClient
   .info(url)                        → ConnectorInfo (name, version, fields)
   .test(url, config)                → TestResult (ok, documentCount, message)
   .documents(url, config)           → List<ConnectorDocument> (id, path, contentHash)
-  .fetch(url, config, documentId)   → ConnectorDocument (path, rawContent)
+  .fetch(url, config, documentId)   → ConnectorFetchResult (path, rawContent, metadata)
 ```
+
+Connect timeout: 10 s. Read timeout: 60 s (large document fetches can be slow).
 
 ---
 
@@ -132,57 +130,71 @@ data_source
   created_at           TIMESTAMP
 
 chunking_profile
-  id          BIGSERIAL PK
-  name        VARCHAR NOT NULL
-  description VARCHAR
-  strategy    VARCHAR NOT NULL   (FIXED_TOKENS | PARAGRAPH | CUSTOM_SEPARATOR | MARKDOWN_HEADERS)
-  chunk_size  INT
+  id            BIGSERIAL PK
+  name          VARCHAR NOT NULL
+  description   VARCHAR
+  strategy      VARCHAR NOT NULL  (FIXED_TOKENS | PARAGRAPH | CUSTOM_SEPARATOR | MARKDOWN_HEADERS | AI)
+  chunk_size    INT
   chunk_overlap INT
-  separator   VARCHAR
-  created_at  TIMESTAMP
+  separator     VARCHAR
+  created_at    TIMESTAMP
 
 loaded_document
   id              BIGSERIAL PK
-  data_source_id  BIGINT
+  data_source_id  BIGINT FK → data_source
   filename        VARCHAR   (= path from connector)
   content_hash    VARCHAR
   document_type   VARCHAR
   chunk_count     INT
   loaded_at       TIMESTAMP
-  -- raw_content TEXT not yet added
+
+sync_log_entry
+  id              BIGSERIAL PK
+  data_source_id  BIGINT FK → data_source ON DELETE CASCADE
+  sync_run_id     VARCHAR(36)  (UUID per sync run)
+  level           VARCHAR(8)   (INFO | WARN | ERROR)
+  event_type      VARCHAR(32)  (SyncEventType enum)
+  message         TEXT
+  details         JSONB
+  created_at      TIMESTAMP
 ```
 
-**Skipped from original plan:** `KnowledgeBase` entity, `SyncLog` entity. The two-level
-hierarchy (`KnowledgeBase → DataSource`) was simplified to a flat list of data sources
-under `/settings/knowledge-base`. This is a valid simplification for phase 1; KnowledgeBase
-grouping can be added later if multi-tenant or multi-project scenarios require it.
+**Skipped from original plan:** `KnowledgeBase` entity. The two-level hierarchy
+(`KnowledgeBase → DataSource`) was simplified to a flat list of data sources.
+`SyncLog` was replaced by `sync_log_entry` with a richer event model.
 
 ### Vector store chunk metadata (current)
 
 ```json
 {
   "data_source_id":   "3",
-  "data_source_name": "laws-repo",
-  "source_file":      "traffic/art-12.txt"
+  "data_source_name": "lex-bg",
+  "source_file":      "https://lex.bg/laws/ldoc/521957377",
+  "sourceUrl":        "https://lex.bg/laws/ldoc/521957377",
+  "crawledAt":        "2026-07-10T08:23:11.000Z",
+  "article":          "Чл. 5",
+  "topic":            "penalties",
+  "keywords":         ["санкция", "глоба", "нарушение"]
 }
 ```
 
-**Missing vs plan:** `knowledge_base_id`, `knowledge_base_name` (no KB entity), `source_url`
-(GitHub URL is not reconstructed from path; web crawler paths are full URLs so those work).
+`article`, `topic`, and `keywords` are populated by `AiChunkingSplitter` when the AI chunking
+strategy is used. They are used as retrieval signals (article metadata search, keyword metadata
+search) and displayed in chat citations.
 
-### New services
+### Services
 
 | Service | Status | Responsibility |
 |---|---|---|
 | `ConnectorClient` | ✅ done | HTTP client for the 4-endpoint connector contract |
-| `ConnectorSyncService` | ✅ done | Source-agnostic sync |
-| `SyncJobService` | ✅ done | `@Async` orchestration, status tracking |
+| `ConnectorSyncService` | ✅ done | Source-agnostic sync with per-document error isolation and SSE events |
+| `SyncProgressService` | ✅ done | SSE emitter management + sync log persistence |
 | `ChunkingProfileService` | ✅ done | CRUD for ChunkingProfile |
-| `DataSourceService` | ✅ done | CRUD for DataSource |
+| `DataSourceService` | ✅ done | CRUD for DataSource, findById |
+| `HybridSearchService` | ✅ done | 4-channel search (dense + FTS + article + keyword) merged via weighted RRF |
+| `RerankerService` | ✅ done | LLM-based relevance scorer; rates candidates 0–10 with Bulgarian legal context |
+| `AiChunkingSplitter` | ✅ done | AI chunking for Bulgarian legal text; segments large docs; retry + fallback |
 | `EncryptionService` | ❌ skipped | AES-256-GCM for secret config fields |
-| `HybridSearchService` | ❌ missing | Dense + FTS sparse merged via RRF |
-| `QueryRewriteService` | ⚠️ partial | `ExpansionQueryAdvisor` exists but not wired; template is Spring-specific |
-| `RerankService` (Ollama) | ⚠️ partial | `BM25RerankEngine` in-process; no cross-encoder |
 
 ---
 
@@ -192,46 +204,61 @@ grouping can be added later if multi-tenant or multi-project scenarios require i
 
 All knowledge base management lives under **Settings → Knowledge Base** (`/settings/knowledge-base`):
 
-- Flat list of data sources with status badges (Synced / Syncing / Error / Never synced)
-- "Add Data Source" modal: Name → Connector URL → Discover → dynamic config form → profile dropdown → Save
-- "Sync Now" button per data source
-- "Remove" button with confirmation modal
-- Chunking profiles page (`/settings/knowledge-base/chunking-profiles`)
+- **List page** (`/settings/knowledge-base`): clickable cards per data source showing status badge,
+  URL, chunk count, last synced. "Sync Now" button per card. "Add Data Source" modal.
+- **Detail page** (`/settings/knowledge-base/data-sources/{id}`):
+  - Connector info card with live-updating status badge, Sync Now button
+  - Live sync log panel — SSE stream during active sync, full history otherwise
+  - Danger zone with name-confirmation delete
+- **Chunking profiles** (`/settings/knowledge-base/chunking-profiles`): CRUD with inline delete modal
 
 **Skipped from original plan:** Separate apps-level KB list/detail pages at `/apps/knowledge-base`.
-The settings page handles everything. No inline KB name/description edit (no KB entity).
-No sync log display.
-
-### Original planned UI (deferred)
-
-The plan described a richer two-level hierarchy with a list page and detail page per KB.
-These are deferred. If KnowledgeBase grouping is added later, the UI would need:
-
-- `/apps/knowledge-base` — list of KBs with aggregate status
-- `/apps/knowledge-base/{id}` — detail page: data sources, sync log, inline name edit
-- Auto-polling while status = SYNCING
+No inline KB name/description edit (no KB entity).
 
 ---
 
 ## Sync Pipeline
 
-`ConnectorSyncService.sync(DataSource ds)` is fully source-agnostic:
+`ConnectorSyncService.sync(Long dataSourceId)` is fully source-agnostic:
 
-1. Set `ds.status = SYNCING`, save
+1. Generate UUID `runId`; emit `SYNC_STARTED` event with document count
 2. `ConnectorClient.documents(ds.connectorUrl, config)` → list of `{ id, path, contentHash }`
-3. For each document:
-   - Check `LoadedDocument` for same `dataSourceId` + `path` + `contentHash` → skip if unchanged
-   - `ConnectorClient.fetch(...)` → `rawContent`
+3. For each document (each in its own try/catch — one failure doesn't abort the sync):
+   - Check `LoadedDocument` for same `dataSourceId` + `path` + `contentHash` → emit `DOC_SKIPPED` + skip
+   - `ConnectorClient.fetch(...)` → `rawContent` + optional `metadata`; emit `DOC_FETCHED`
    - Delete old chunks from vector store (filter by `data_source_id` + `path` metadata)
-   - Chunk using `ChunkingStrategyFactory.get(ds)` transformer
-   - Attach metadata to each chunk
-   - Store chunks in `VectorStore`
-   - Upsert `LoadedDocument` (without rawContent — not yet persisted)
-4. Detect removed documents → delete their chunks
-5. Set `ds.status = IDLE`, update `ds.lastSyncedAt`, `ds.chunkCount`
+   - Chunk using `ChunkingStrategyFactory.get(ds.chunkingProfile)` transformer
+   - Attach metadata (data_source_id, data_source_name, source_file, connector metadata) to each chunk
+   - Store chunks in `VectorStore`; emit `DOC_CHUNKED` with keyword/article summary
+   - Save `LoadedDocument`
+4. Detect removed documents → delete their chunks; emit `DOC_REMOVED`
+5. Set `ds.status = IDLE`, update `ds.lastSyncedAt`, `ds.chunkCount`; emit `SYNC_COMPLETE`
+6. `finally`: `syncProgressService.completeEmitters(dataSourceId)` — always closes SSE
 
-**Not yet implemented:** secret decryption before connector calls, rawContent persistence,
-SyncLog write, retry logic.
+All events are persisted to `sync_log_entry` and broadcast to any active SSE subscribers.
+
+**Still missing:** secret decryption before connector calls, `rawContent` persistence in
+`LoadedDocument` (blocks re-indexing without re-fetch).
+
+---
+
+## AI Chunking Strategy (`AiChunkingSplitter`)
+
+Activated when a chunking profile has `strategy = AI`.
+
+**Large document handling:** Documents longer than 30 000 chars are split into segments at
+Bulgarian legal structural boundaries (`\n\nЧл.`, `\n\n§`, `\n\nРаздел`, `\n\nГлава`, etc.)
+so no article is ever cut mid-text. Each segment is independently processed.
+
+**Per-segment pipeline:**
+1. Send segment to LLM with a 3-step prompt: CLEAN (strip amendment history, Flash errors, noise)
+   → SPLIT (one chunk per article/paragraph/section) → ENRICH (article id, English topic, Bulgarian keywords)
+2. Parse JSON response `{ chunks: [{ text, article, topic, keywords }] }`
+3. Retry up to 2 times on empty/invalid response
+4. Fallback: paragraph split capped at 3 000 chars to stay within embedding model token limit
+
+**LLM config:** `OllamaChatOptions` with `temperature=0.0` for deterministic output.
+System message enforces JSON-only responses.
 
 ---
 
@@ -243,33 +270,34 @@ SyncLog write, retry logic.
 User message
     │
     ▼
-① ExpansionQueryAdvisor   ← EXISTS but NOT WIRED in ChatService
-    Spring-specific query expander; template needs to be domain-agnostic
+① ExpansionQueryAdvisor   ✅ WIRED (order=5)
+    Generates 3 alternative search queries as JSON {"queries": [...]}
+    Expands abbreviations, resolves follow-up references using conversation history
+    Stores list as ENRICHED_QUESTIONS + first query as ENRICHED_QUESTION (backward compat)
     │
     ▼
-② RagAdvisor              ← WIRED (order=10)
-    Vector similarity search → top-K * 2 candidates
-    BM25RerankEngine reranks in-process → top-K
-    Builds numbered [N] source blocks and prepends to user message
+② RagAdvisor              ✅ WIRED (order=10)
+    Reads ENRICHED_QUESTIONS list → passes all queries to HybridSearchService
+    HybridSearchService: 4 channels × 3 queries, weighted RRF → top-20 candidates
+    RerankerService: LLM relevance scores → top-5
+    Builds numbered [N] source blocks with article/topic/crawledAt and prepends to user message
     │
     ▼
 ③ LLM call
-    System prompt: "answer ONLY from those sources" + prompt injection protection
+    System prompt: legal citation format, answer ONLY from sources, prompt injection protection
 ```
 
-### What's working
+### HybridSearchService — 4 retrieval channels
 
-- RAG activates automatically when any data source has `chunk_count > 0`
-- Numbered citation blocks `[N] source — file` prepended to user message
-- System prompt enforces ground rule and prompt injection protection
-- BM25 lexical reranking of the retrieved candidate set
+| Channel | Method | Weight | Purpose |
+|---|---|---|---|
+| Dense | `vectorStore.similaritySearch(threshold=0.2)` | 1.2 | Semantic similarity |
+| Sparse FTS | `websearch_to_tsquery('simple')` + `ts_rank_cd` | 1.0 | Exact keyword matching |
+| Article metadata | `metadata->>'article' ILIKE 'Чл. 5%'` | 1.5 | Precise article reference lookups |
+| Keyword metadata | `jsonb_array_elements_text(metadata->'keywords') ILIKE 'задълж%'` | 1.1 | AI-curated term matching with morphological prefix |
 
-### What's missing vs the plan
-
-- Query rewrite not in the chain (advisor exists but unused)
-- No hybrid search: only vector similarity, no FTS/tsvector
-- No true cross-encoder reranker (Ollama bge-reranker)
-- No `source_url` in citations for GitHub files
+All channels run per-query; scores accumulate across all 3 expanded queries via weighted RRF
+(k=60). Top-20 candidates go to the LLM reranker; top-5 go to context.
 
 ---
 
@@ -280,43 +308,44 @@ User message
 - ✅ `scripts/data-source-connector-template/` created with all 4 endpoints
 - ✅ `README.md` with connector contract documentation
 - ✅ Sample data files for end-to-end testing
+- ✅ `scripts/lex-bg/` — live Bulgarian legislation connector with preload + file cache + cron
 
 ### Phase 1 — Data model + UI
 
-- ✅ DB migration: `chunking_profile`, `data_source`
-- ✅ JPA entities: `ChunkingProfile`, `DataSource`; `LoadedDocument` updated with `data_source_id`
-- ✅ Repositories: `ChunkingProfileRepository`, `DataSourceRepository`, `DocumentRepository`
-- ✅ `ChunkingProfileService`: findAll, create, update, delete (blocked if in use)
-- ✅ `DataSourceService`: findAll, create, delete, markSyncing
-- ✅ `ChunkingProfileController` + `chunking-profiles.html`
-- ✅ `KnowledgeBaseController` at `/settings/knowledge-base` + `settings-knowledge-base.html`
-- ✅ Add data source modal: connector URL → Discover → dynamic field form → profile dropdown → Save
-- ❌ `KnowledgeBase` entity + `SyncLog` entity (architecture simplified to flat)
+- ✅ DB migration: `chunking_profile`, `data_source`, `sync_log_entry`
+- ✅ JPA entities: `ChunkingProfile`, `DataSource`, `LoadedDocument`, `SyncLogEntry`
+- ✅ Repositories: all CRUD + `SyncLogRepository` with top-200 ordered query
+- ✅ `ChunkingProfileService`, `DataSourceService`
+- ✅ `ChunkingProfileController` + `chunking-profiles.html` (CSRF fix on delete)
+- ✅ `KnowledgeBaseController`: list page + detail page + sync + delete
+- ✅ List page: clickable cards, compact Sync button, Add modal
+- ✅ Detail page: status card, SSE sync log panel, danger zone with name confirmation
+- ❌ `KnowledgeBase` entity (architecture simplified to flat)
 - ❌ `EncryptionService` for secret config fields (secrets stored in plain text in JSONB)
-- ❌ Separate apps-level list/detail pages
 
 ### Phase 2 — ConnectorSyncService + sync pipeline
 
 - ✅ `ConnectorClient`: HTTP client for all 4 connector endpoints
-- ✅ `ConnectorSyncService`: source-agnostic sync
-- ✅ `SyncJobService`: `@Async` orchestration, status tracking
-- ✅ "Sync Now" POST endpoint → async sync → redirect
-- ✅ Status badges on UI
-- ❌ `rawContent` not stored in `LoadedDocument` (blocks future re-indexing without re-fetch)
-- ❌ `fts tsvector` generated column + `GIN` index not added to `vector_store`
-- ❌ Sync log not displayed in UI
-- ❌ Auto-polling while SYNCING
+- ✅ `ConnectorSyncService`: source-agnostic sync with per-document isolation
+- ✅ `SyncProgressService`: SSE emitter management + `sync_log_entry` persistence
+- ✅ `SyncLogController`: `/api/.../sync-stream` (SSE) + `/api/.../sync-log` (history)
+- ✅ "Sync Now" POST endpoint → async sync → redirect (list or detail based on `from` param)
+- ✅ `fts tsvector` generated column + `GIN` index added to `vector_store`
+- ✅ Sync log displayed live in detail page via SSE; history on page load
+- ✅ Auto-SSE connection while status = SYNCING
+- ❌ `rawContent` not stored in `LoadedDocument` (blocks re-indexing without re-fetch)
 
 ### Phase 3 — Chat integration
 
-- ✅ Chunk metadata written during sync (`data_source_id`, `data_source_name`, `source_file`)
-- ✅ `RagAdvisor`: vector search + BM25 rerank → numbered context blocks
-- ✅ Wired into `ChatService` when `chunk_count > 0`
-- ✅ System prompt ground rule + prompt injection protection
-- ⚠️ `ExpansionQueryAdvisor` exists but NOT wired; template is Spring-specific, needs rewrite
-- ❌ `HybridSearchService`: no FTS, no RRF merge
-- ❌ `RerankService` via Ollama cross-encoder
-- ❌ `source_url` missing from chunk metadata (GitHub file URLs not reconstructed)
+- ✅ Chunk metadata: `data_source_id`, `data_source_name`, `source_file`, `sourceUrl`, `crawledAt`
+- ✅ AI chunker adds: `article`, `topic`, `keywords` to chunk metadata
+- ✅ `ExpansionQueryAdvisor`: multi-query expansion (3 queries), wired at order=5
+- ✅ `HybridSearchService`: 4-channel search with weighted RRF, multi-query support
+- ✅ `RerankerService`: LLM-based relevance scorer with Bulgarian legal context
+- ✅ `RagAdvisor`: reads ENRICHED_QUESTIONS list, passes to hybrid search, formats citations
+- ✅ System prompt with legal citation format and prompt injection protection
+- ⚠️ Reranker is LLM-based (not a true cross-encoder); cross-encoder would be higher quality
+- ❌ `EncryptionService` — secrets in plain text
 
 ### Phase 4 — Polish & scheduled sync
 
@@ -326,115 +355,62 @@ User message
 
 ## RAG Quality Roadmap
 
-Gaps identified against the [RAG cheatsheet](two-loop architecture: ingestion + retrieval).
-Ordered by impact on answer quality.
+### R1 — Wire query rewrite ✅ DONE (upgraded to multi-query)
 
-### R1 — Wire query rewrite (high impact, low effort)
+`ExpansionQueryAdvisor` wired at order=5. Generates 3 alternative queries covering different
+angles and phrasings. Expands abbreviations, resolves follow-up references.
 
-`ExpansionQueryAdvisor` already exists. Two changes needed:
+### R2 — Hybrid search ✅ DONE (4 channels + weighted RRF)
 
-1. Rewrite the prompt template to be domain-agnostic (remove Spring specialization):
-   ```
-   Rewrite the user question into a precise, search-optimised query.
-   Resolve pronouns and follow-up context from the conversation.
-   Expand abbreviations. Keep all key terms. Return a plain string.
-   Question: {question}
-   Rewritten query:
-   ```
-2. Add it to the advisor chain in `ChatService` before `RagAdvisor`:
-   ```java
-   spec.advisors(ExpansionQueryAdvisor.builder(chatModel).order(5).build());
-   spec.advisors(RagAdvisor.build(vectorStore).order(10).build());
-   ```
+`HybridSearchService` with dense, FTS (`websearch_to_tsquery`/`ts_rank_cd`), article metadata,
+and keyword metadata channels. All channels run for all 3 expanded queries; scores accumulated
+via weighted RRF. Similarity threshold (0.2) on dense to filter irrelevant embeddings.
 
-This directly improves recall: follow-up questions like "what about that law?" get rewritten
-into search-friendly form before hitting the vector store.
+### R3 — Store rawContent in LoadedDocument ❌ PENDING
 
-### R2 — Hybrid search: FTS + vector + RRF (high impact, medium effort)
+Raw copies would enable re-indexing when chunking strategy or embedding model changes
+without re-fetching from the connector.
 
-Per cheatsheet: "Hybrid index: vector + BM25". Currently only vector search is used.
+- Add `raw_content TEXT` column to `loaded_document`
+- Persist `fetched.rawContent()` in `ConnectorSyncService`
+- Phase 4 "Re-index" reads from `rawContent` instead of calling the connector
 
-**Step 1** — Add FTS column to vector_store (one-time migration):
-```sql
-ALTER TABLE vector_store ADD COLUMN fts tsvector
-  GENERATED ALWAYS AS (to_tsvector('english', content)) STORED;
-CREATE INDEX ON vector_store USING GIN(fts);
-```
+### R4 — source_url in chunk metadata ✅ DONE
 
-**Step 2** — `HybridSearchService` runs both queries and merges:
-```
-dense  = vectorStore.similaritySearch(query, topK=50)
-sparse = jdbc("SELECT id, content, metadata FROM vector_store
-               WHERE fts @@ plainto_tsquery('english', ?)
-               ORDER BY ts_rank(fts, plainto_tsquery('english', ?)) DESC
-               LIMIT 50", query, query)
-merged = reciprocalRankFusion(dense, sparse)  // score = 1/(60+rank_d) + 1/(60+rank_s)
-```
+Connectors return `metadata: { sourceUrl, crawledAt }` from `/connector/fetch`. These are
+merged into chunk metadata and displayed in `RagAdvisor` citation blocks. Web crawler paths
+(lex.bg URLs) are clickable links in chat responses.
 
-**Step 3** — Replace `vectorStore.similaritySearch` call in `RagAdvisor` with `HybridSearchService`.
-
-This is the single biggest retrieval improvement — keyword queries (error codes, names,
-exact terms) are weak in vector search but strong in FTS.
-
-### R3 — Store rawContent in LoadedDocument (medium impact, low effort)
-
-Per cheatsheet "object storage" step: raw copies enable re-indexing when chunking strategy
-or embedding model changes, without re-fetching from the connector.
-
-Changes:
-- Add `raw_content TEXT` column to `loaded_document` table
-- Add `rawContent` field to `LoadedDocument` entity
-- Persist `fetched.rawContent()` in `ConnectorSyncService` when saving `LoadedDocument`
-- Phase 4 "Re-index" option reads from `rawContent` instead of calling the connector
-
-### R4 — Add source_url to chunk metadata (medium impact, low effort)
-
-For proper citations. Currently chunk metadata has `source_file` (path) but no clickable URL.
-
-In `ConnectorSyncService`, when building the `Document` metadata map:
-- If `source_file` starts with `http`, use it directly as `source_url`
-- Otherwise, connector could return a `sourceUrl` in the fetch response (extend contract)
-- Or reconstruct from connector config for known types (GitHub: `https://github.com/{repo}/blob/{branch}/{path}`)
-
-Update citation format in `RagAdvisor` context block to include the URL when present.
-
-### R5 — Encrypt secrets in config JSONB (security, medium effort)
+### R5 — Encrypt secrets in config JSONB ❌ PENDING
 
 `EncryptionService` was planned but skipped. Connector config fields marked `secret: true`
-are currently stored as plain text in the JSONB column.
+are stored as plain text. Implement AES-256-GCM encrypt/decrypt keyed from `application.yaml`.
 
-Implement AES-256-GCM encrypt/decrypt:
-- `EncryptionService.encrypt(value)` / `decrypt(value)` — key from `application.yaml`
-- `DataSourceService.create()` — encrypt secret fields before saving
-- `ConnectorClient` calls — decrypt before passing config to connector
-- UI — mask secret fields, show `••••` for existing values
+### R6 — Scheduled sync + webhook ❌ PENDING
 
-### R6 — Scheduled sync + webhook (medium impact, medium effort)
+- Add `sync_interval_hours INT` to `data_source`
+- `@Scheduled` job: trigger sync when `last_synced_at < now() - interval`
+- `POST /settings/knowledge-base/webhook/{dataSourceId}` with shared secret header
 
-Per cheatsheet: "Ingestion is triggered automatically (webhook / schedule)".
+### R7 — Cross-encoder reranker ⚠️ PARTIAL
 
-- Add `sync_interval_hours INT` to `data_source` (null = manual only)
-- `@Scheduled` job every hour: find sources where `last_synced_at < now() - interval` → trigger
-- `POST /settings/knowledge-base/webhook/{dataSourceId}` → verify shared secret header → trigger sync
-- Configurable interval dropdown in the data source form (None / 1h / 6h / 24h)
+LLM-based `RerankerService` exists (scores candidates 0–10 with Bulgarian legal context,
+500-char preview, article/topic headers). This is better than BM25 but not a true cross-encoder.
+A proper cross-encoder (`bge-reranker-v2-m3` via Ollama) would give stronger signal at the
+cost of ~200–500 ms latency.
 
-### R7 — Cross-encoder reranker via Ollama (high quality, high effort)
+### R8 — Large law chunking ✅ DONE
 
-Replace `BM25RerankEngine` with a proper cross-encoder that scores each (query, chunk) pair
-by actual relevance. Current BM25 re-scores only the already-retrieved top-K; a cross-encoder
-reads the full pair and gives a richer signal.
-
-- Pull `bge-reranker-v2-m3` model in Ollama
-- Implement `RerankService` calling Ollama `/api/embed` or a dedicated rerank endpoint
-- Hybrid search retrieves 20–50 candidates; cross-encoder selects top 5–10
-- Adds ~200–500ms latency per request — acceptable if retrieval quality is the priority
+`AiChunkingSplitter` detects documents exceeding 30 000 chars and splits at Bulgarian
+structural boundaries before processing each segment. Previously, documents > 30 000 chars
+were truncated — the bulk of large laws (Civil Code, Penal Code, etc.) was invisible to RAG.
 
 ---
 
 ## Open Questions
 
 1. **KnowledgeBase grouping**: add the entity later for multi-project scenarios, or keep flat?
-2. **Reranker model**: `bge-reranker-v2-m3` vs keeping in-process BM25 (latency tradeoff)?
+2. **Reranker model**: upgrade to `bge-reranker-v2-m3` cross-encoder, or keep LLM-based (latency tradeoff)?
 3. **Max document size**: ceiling on rawContent to avoid enormous chunks? (Suggest 500 KB.)
-4. **Query rewrite model**: same Ollama model as chat, or a faster/smaller one for the rewrite step?
-5. **FTS language**: `english` tsvector config. Needs `simple` or `pg_catalog.bulgarian` for multi-language corpora.
+4. **Secret encryption**: when to implement `EncryptionService`? Blocks production use of connectors with API keys.
+5. **Re-index without re-fetch**: blocked on R3 (rawContent storage); needed when switching chunking profiles.
