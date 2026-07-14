@@ -57,7 +57,7 @@ function weeklyHash(id) {
 
 function docIdFromUrl(url) {
     const m = url.match(/\/laws\/ldoc\/(-?\d+)/);
-    return m ? m[1].replace(/^-/, '') : null;
+    return m ? m[1] : null;
 }
 
 async function fetchHtml(url) {
