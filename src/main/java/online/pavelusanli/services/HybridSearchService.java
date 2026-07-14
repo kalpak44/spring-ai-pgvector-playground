@@ -103,8 +103,8 @@ public class HybridSearchService {
                     // ts_rank_cd (cover density) scores short chunks more fairly than ts_rank.
                     "SELECT id, content, metadata " +
                     "FROM vector_store " +
-                    "WHERE fts @@ websearch_to_tsquery('simple', ?) " +
-                    "ORDER BY ts_rank_cd(fts, websearch_to_tsquery('simple', ?)) DESC " +
+                    "WHERE fts @@ websearch_to_tsquery('bulgarian', ?) " +
+                    "ORDER BY ts_rank_cd(fts, websearch_to_tsquery('bulgarian', ?)) DESC " +
                     "LIMIT ?",
                     (rs, rowNum) -> new Document(
                             rs.getString("id"),

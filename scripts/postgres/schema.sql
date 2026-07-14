@@ -292,11 +292,21 @@ ALTER TABLE loaded_document
 -- Knowledge Base — Hybrid Search (FTS on vector_store)
 -- =================================================
 
--- 'simple' tokenises without language-specific stemming — correct for multilingual content
+-- Create Bulgarian FTS configuration if the server does not already ship one.
+-- Falls back to a copy of 'simple' (lowercasing only) so the column definition below
+-- never fails. Add a proper Bulgarian stopwords file to $SHAREDIR/tsearch_data/ and
+-- re-run to get stop-word filtering at the index level.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_ts_config WHERE cfgname = 'bulgarian') THEN
+        CREATE TEXT SEARCH CONFIGURATION bulgarian (COPY = simple);
+    END IF;
+END $$;
+
 ALTER TABLE vector_store DROP COLUMN IF EXISTS fts;
 ALTER TABLE vector_store
     ADD COLUMN fts tsvector
-        GENERATED ALWAYS AS (to_tsvector('simple', coalesce(content, ''))) STORED;
+        GENERATED ALWAYS AS (to_tsvector('bulgarian', coalesce(content, ''))) STORED;
 
 DROP INDEX IF EXISTS idx_vector_store_fts;
 CREATE INDEX idx_vector_store_fts ON vector_store USING GIN(fts);

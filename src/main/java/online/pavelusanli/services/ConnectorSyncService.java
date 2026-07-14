@@ -59,6 +59,8 @@ public class ConnectorSyncService {
                     Map.of("documentCount", remoteList.size()));
 
             int totalChunks = 0;
+            int processed   = 0;
+            long loopStart  = System.currentTimeMillis();
 
             for (ConnectorClient.ConnectorDocument remote : remoteList) {
                 try {
@@ -68,6 +70,15 @@ public class ConnectorSyncService {
                     info(dataSourceId, runId, SyncEventType.DOC_FETCHED, "WARN",
                             "Skipped (error): " + remote.path() + " — " + e.getMessage(),
                             Map.of("path", remote.path(), "error", String.valueOf(e.getMessage())));
+                }
+                processed++;
+                int remaining = remoteList.size() - processed;
+                if (remaining > 0 && log.isDebugEnabled()) {
+                    long avgMs = (System.currentTimeMillis() - loopStart) / processed;
+                    log.debug("Sync {}/{} — avg {}s/doc — ETA ~{}",
+                            processed, remoteList.size(),
+                            avgMs / 1000,
+                            formatDuration(avgMs * remaining));
                 }
             }
 
@@ -203,5 +214,12 @@ public class ConnectorSyncService {
         ds.setStatus(DataSourceStatus.ERROR);
         ds.setErrorMessage(message);
         dataSourceRepository.save(ds);
+    }
+
+    private static String formatDuration(long ms) {
+        long s = ms / 1000;
+        if (s < 60)   return s + "s";
+        if (s < 3600) return (s / 60) + "m " + (s % 60) + "s";
+        return (s / 3600) + "h " + ((s % 3600) / 60) + "m";
     }
 }

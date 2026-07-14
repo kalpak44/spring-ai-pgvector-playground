@@ -33,14 +33,14 @@ public class AiChunkingSplitter extends TextSplitter {
             "Your only job is to read a raw legal text, discard noise, and return a structured JSON " +
             "representation of its semantic chunks. " +
             "You MUST respond with a single valid JSON object and nothing else — " +
-            "no explanations, no markdown fences, no preamble.";
+            "no explanations, no markdown fences, no preamble, no emojis.";
 
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
 
     public AiChunkingSplitter(ChatModel chatModel, ObjectMapper objectMapper) {
         this.chatClient = ChatClient.builder(chatModel)
-                .defaultOptions(OllamaChatOptions.builder().temperature(0.0))
+                .defaultOptions(OllamaChatOptions.builder().temperature(0.0).format("json"))
                 .defaultSystem(SYSTEM_PROMPT)
                 .build();
         this.objectMapper = objectMapper;
@@ -117,6 +117,7 @@ public class AiChunkingSplitter extends TextSplitter {
                         .user(buildPrompt(text))
                         .call()
                         .content();
+                log.debug("AI raw response (attempt {}):\n{}", attempt, response);
                 List<AiChunk> chunks = parseChunks(response);
                 if (!chunks.isEmpty()) {
                     log.debug("AI chunking: {} chunks (attempt {})", chunks.size(), attempt);
@@ -223,21 +224,43 @@ public class AiChunkingSplitter extends TextSplitter {
         String json = extractJson(response);
         try {
             Map<String, Object> root = objectMapper.readValue(json, MAP_TYPE);
-            Object raw = root.get("chunks");
-            if (!(raw instanceof List<?> list)) return List.of();
 
-            List<AiChunk> chunks = new ArrayList<>();
-            for (Object item : list) {
-                if (!(item instanceof Map<?, ?> map)) continue;
-                String chunkText = getString(map, "text");
-                if (chunkText == null || chunkText.isBlank()) continue;
-                chunks.add(new AiChunk(chunkText, getString(map, "article"),
-                        getString(map, "topic"), getStringList(map, "keywords")));
+            // Try expected schema first
+            Object raw = root.get("chunks");
+            if (raw instanceof List<?> list && !list.isEmpty()) {
+                List<AiChunk> chunks = new ArrayList<>();
+                for (Object item : list) {
+                    if (!(item instanceof Map<?, ?> map)) continue;
+                    String chunkText = getString(map, "text");
+                    if (chunkText == null || chunkText.isBlank()) continue;
+                    chunks.add(new AiChunk(chunkText, getString(map, "article"),
+                            getString(map, "topic"), getStringList(map, "keywords")));
+                }
+                if (!chunks.isEmpty()) return chunks;
             }
-            return chunks;
+
+            // Fallback: walk the entire tree and collect any node that has a "text" field
+            log.debug("Expected 'chunks' key not found — walking JSON tree for text nodes");
+            List<AiChunk> collected = new ArrayList<>();
+            collectTextNodes(root, collected);
+            return collected;
         } catch (Exception e) {
             log.warn("Failed to parse AI chunk JSON: {}", e.getMessage());
             return List.of();
+        }
+    }
+
+    private void collectTextNodes(Object node, List<AiChunk> out) {
+        if (node instanceof Map<?, ?> map) {
+            String text = getString(map, "text");
+            if (text != null && !text.isBlank()) {
+                out.add(new AiChunk(text, getString(map, "article"),
+                        getString(map, "topic"), getStringList(map, "keywords")));
+            } else {
+                map.values().forEach(v -> collectTextNodes(v, out));
+            }
+        } else if (node instanceof List<?> list) {
+            list.forEach(item -> collectTextNodes(item, out));
         }
     }
 
