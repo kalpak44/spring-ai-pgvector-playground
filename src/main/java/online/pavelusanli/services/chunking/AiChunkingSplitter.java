@@ -188,7 +188,7 @@ public class AiChunkingSplitter extends TextSplitter {
                 • Repeated whitespace and page-navigation artefacts.
                 The law title is fine to keep as context in the first chunk if it adds meaning.
 
-                STEP 2 — SPLIT:
+                STEP 2 — SPLIT AND PRESERVE:
                 Create one chunk per coherent legal provision. Good split points are:
                 • Individual articles: "Чл. 1", "Чл. 2", …
                 • Numbered paragraphs that stand alone: "§ 1", "§ 2", …
@@ -196,6 +196,9 @@ public class AiChunkingSplitter extends TextSplitter {
                 A chunk must be self-contained and meaningful out of context.
                 Do NOT merge many articles into one chunk. Do NOT split a single article across chunks.
                 If a chunk contains only noise after cleaning, omit it entirely.
+                CRITICAL: the "text" field MUST contain the EXACT, VERBATIM wording of the provision \
+                as it appears in the source — do NOT paraphrase, summarise, or rewrite anything. \
+                Only remove the noise listed in STEP 1. Every word in "text" must appear in the original.
 
                 STEP 3 — ENRICH:
                 For every chunk fill in:
@@ -208,7 +211,7 @@ public class AiChunkingSplitter extends TextSplitter {
                 {
                   "chunks": [
                     {
-                      "text": "cleaned chunk text — no noise, no separators, no amendment headers",
+                      "text": "VERBATIM article text copied from source, cleaned of noise only",
                       "article": "Чл. 5",
                       "topic": "short English topic label",
                       "keywords": ["ключова1", "ключова2", "ключова3"]

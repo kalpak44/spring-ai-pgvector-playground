@@ -135,8 +135,10 @@ public class ConnectorSyncService {
                 "Fetched: " + remote.path() + " (" + fetched.rawContent().length() + " chars)",
                 Map.of("path", remote.path(), "contentLength", fetched.rawContent().length()));
 
+        // Always delete before inserting — guards against orphaned chunks from previous syncs
+        // where loaded_document records may have been lost or had null data_source_id.
+        deleteChunksForPath(ds.getId(), remote.path());
         if (existing.isPresent()) {
-            deleteChunksForPath(ds.getId(), remote.path());
             documentRepository.delete(existing.get());
         }
 
