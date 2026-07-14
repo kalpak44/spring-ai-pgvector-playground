@@ -120,6 +120,13 @@ public class AiChunkingSplitter extends TextSplitter {
                 List<AiChunk> chunks = parseChunks(response);
                 if (!chunks.isEmpty()) {
                     log.debug("AI chunking: {} chunks (attempt {})", chunks.size(), attempt);
+                    if (log.isDebugEnabled()) {
+                        for (int i = 0; i < chunks.size(); i++) {
+                            AiChunk c = chunks.get(i);
+                            log.debug("  chunk[{}] article={} topic={} keywords={}\n---\n{}\n---",
+                                    i, c.article(), c.topic(), c.keywords(), c.text());
+                        }
+                    }
                     return chunks.stream().map(c -> toDocument(c, meta)).toList();
                 }
                 log.warn("AI chunking returned no usable chunks on attempt {}{}", attempt,
@@ -165,12 +172,19 @@ public class AiChunkingSplitter extends TextSplitter {
                 suitable for a RAG knowledge base.
 
                 STEP 1 — CLEAN:
-                Before splitting, mentally discard everything that is not substantive legal content:
-                • The publication / amendment history block (lines containing "Обн. ДВ. бр.", \
-                "изм. ДВ. бр.", "доп. ДВ. бр.", "попр. ДВ. бр.", etc.).
-                • Effective-date lines ("В сила от …") unless they appear inside an article body.
-                • Browser/plugin error messages ("Adobe Flash Player", "In order to view …", etc.).
-                • Repeated whitespace, page-navigation artefacts, and any other non-legal noise.
+                Strip ALL of the following noise before you write any chunk text. \
+                The "text" field must never contain any of these:
+                • Publication / amendment history: lines or parenthetical blocks containing \
+                "Обн. ДВ. бр.", "изм. ДВ. бр.", "доп. ДВ. бр.", "попр. ДВ. бр.", \
+                or standalone "(ОБН. - ДВ, БР. … Г.)" / "(ИЗМ. - ДВ, …)" markers.
+                • Effective-date lines ("В сила от …") unless embedded inside an article body.
+                • Separator lines made of dashes: "---…" or "———…".
+                • Dot rows representing omitted or classified content: ". . . . . . ." or "……".
+                • Parliamentary signature / closing footer: any line matching \
+                "Законът е приет от … Народно събрание", "подпечатан с държавния печат", \
+                or similar ceremonial closing lines.
+                • Browser / plugin error messages ("Adobe Flash Player", "In order to view …", etc.).
+                • Repeated whitespace and page-navigation artefacts.
                 The law title is fine to keep as context in the first chunk if it adds meaning.
 
                 STEP 2 — SPLIT:
@@ -180,6 +194,7 @@ public class AiChunkingSplitter extends TextSplitter {
                 • Named sections ("Раздел I", "Глава първа") when they contain introductory text.
                 A chunk must be self-contained and meaningful out of context.
                 Do NOT merge many articles into one chunk. Do NOT split a single article across chunks.
+                If a chunk contains only noise after cleaning, omit it entirely.
 
                 STEP 3 — ENRICH:
                 For every chunk fill in:
@@ -192,7 +207,7 @@ public class AiChunkingSplitter extends TextSplitter {
                 {
                   "chunks": [
                     {
-                      "text": "verbatim chunk text, cleaned of noise",
+                      "text": "cleaned chunk text — no noise, no separators, no amendment headers",
                       "article": "Чл. 5",
                       "topic": "short English topic label",
                       "keywords": ["ключова1", "ключова2", "ключова3"]
