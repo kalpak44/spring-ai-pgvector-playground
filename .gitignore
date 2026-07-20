@@ -72,6 +72,10 @@ application-dev.yml
 # ==================== gcloud secrets ====================
 scripts/gcloud/*.json
 
+# ==================== lex-bg data ====================
+scripts/lex-bg/data/*
+!scripts/lex-bg/data/.gitkeep
+
 # ==================== Node.js ====================
 node_modules/
 
